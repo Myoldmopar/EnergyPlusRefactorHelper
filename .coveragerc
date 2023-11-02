@@ -1,0 +1,6 @@
+[run]
+source = error_refactor
+
+[report]
+omit =
+    */error_refactor/main.py

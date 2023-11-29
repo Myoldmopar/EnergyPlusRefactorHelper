@@ -33,7 +33,7 @@ class TestErrorCall(TestCase):
             state.data->Node(1).Temp,
             state.data->CoolVector[x].attributeY
         )
-    );        
+    );
         """)
         args = ec.parse_arguments()
         self.assertEqual(2, len(args))

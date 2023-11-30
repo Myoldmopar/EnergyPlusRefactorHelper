@@ -64,7 +64,7 @@ class ErrorCallType:
 
 
 class ErrorCall:
-    MAX_LINES_FOR_ERROR_CALL = 8  # to detect/avoid parsing errors
+    MAX_LINES_FOR_ERROR_CALL = 11  # to detect/avoid parsing errors
 
     def __init__(self, line_start: int, char_start_in_file: int, char_start_first_line: int, first_line_raw_text: str):
         self.multiline_text = [first_line_raw_text]
@@ -72,7 +72,7 @@ class ErrorCall:
         self.char_start_in_file = char_start_in_file
         self.char_start_first_line = char_start_first_line
         self.line_end: int = -1
-        self.char_end = -1
+        self.char_end_in_file = -1
         self.appears_successful = True
 
     def add_to_multiline_text(self, line_content: str) -> None:
@@ -80,7 +80,7 @@ class ErrorCall:
 
     def complete(self, line_number: int, end_character_index: int, appears_successful: bool) -> None:
         self.line_end = line_number
-        self.char_end = end_character_index
+        self.char_end_in_file = end_character_index
         self.appears_successful = appears_successful
 
     def one_line_call(self) -> str:

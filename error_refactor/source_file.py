@@ -7,6 +7,7 @@ from error_refactor.error_call import ErrorCall, ErrorCallStrings
 class SourceFile:
     def __init__(self, path: Path):
         self.path = path
+        self.original_file_text = self.path.read_text()
         self.found_errors: List[ErrorCall] = []
 
     @staticmethod
@@ -17,8 +18,8 @@ class SourceFile:
         return None, -1
 
     def process_error_calls_in_file(self):
-        file_text = self.path.read_text()
-        file_lines = file_text.split('\n')
+        self.original_file_text = self.path.read_text()
+        file_lines = self.original_file_text.split('\n')
         num_lines_in_file = len(file_lines)
         current_line_number = 1
         err: Optional[ErrorCall] = None
@@ -27,7 +28,7 @@ class SourceFile:
         raw_line_ending_character_index = -1
         while current_line_number <= num_lines_in_file:
             raw_line = file_lines[current_line_number-1]
-            raw_line_ending_character_index += len(raw_line)
+            raw_line_ending_character_index += len(raw_line) + 1  # includes the \n at the end of the line
             cleaned_line = raw_line
             if '//' in raw_line:  # danger -- could be inside a string literal
                 cleaned_line = raw_line[:cleaned_line.index('//')]
@@ -40,7 +41,7 @@ class SourceFile:
                     err = None
                     parsing_multiline = False
                 elif cleaned_line.strip().endswith(';'):
-                    character_end_index = err.char_start_in_file + raw_line.rfind(';')
+                    character_end_index = raw_line_starting_character_index + raw_line.rfind(';')
                     err.complete(current_line_number, character_end_index, True)
                     self.found_errors.append(err)
                     err = None
@@ -51,8 +52,8 @@ class SourceFile:
                     call_type, call_index_in_line = self.get_call_type_and_starting_index_from_raw_line(raw_line)
                     character_start_index = raw_line_starting_character_index + call_index_in_line
                     err = ErrorCall(current_line_number, character_start_index, call_index_in_line, raw_line)
-                    if cleaned_line.endswith(';'):
-                        character_end_index = err.char_start_in_file + raw_line.rfind(';')
+                    if cleaned_line.strip().endswith(';'):
+                        character_end_index = raw_line_starting_character_index + raw_line.rfind(';')
                         err.complete(current_line_number, character_end_index, True)
                         self.found_errors.append(err)
                         err = None
@@ -61,13 +62,28 @@ class SourceFile:
             raw_line_starting_character_index = raw_line_ending_character_index + 1
             current_line_number += 1
 
+    @staticmethod
+    def replace_and_insert(original_string: str, start_index: int, end_index: int, new_substring: str) -> str:
+        return original_string[:start_index] + new_substring + original_string[end_index:]
+
+    def replace_all_errors(self) -> str:
+        replacement_text = self.original_file_text
+        for fe in reversed(self.found_errors):
+            # char_indices = f"{fe.char_start_in_file}-{fe.char_end_in_file}"
+            # chars_to_replace = self.original_file_text[fe.char_start_in_file:fe.char_end_in_file+1]
+            # print(f"Replacing characters {char_indices} *** {chars_to_replace} *** with *** {fe.one_line_call()} ***")
+            replacement_text = self.replace_and_insert(
+                replacement_text, fe.char_start_in_file, fe.char_end_in_file+1, fe.one_line_call()
+            )
+        return replacement_text
+
     def get_summary(self) -> str:
         ret = ''
         for i, fe in enumerate(self.found_errors):
             num = f"#{i:04d}"
             ok = "LOOKS OK" if fe.appears_successful else "PROBLEM"
             lines = f"Lines {fe.line_start:05d}:{fe.line_end:05d}"
-            chars = f"Characters {fe.char_start_in_file:08d}:{fe.char_end:08d}"
+            chars = f"Characters {fe.char_start_in_file:08d}:{fe.char_end_in_file:08d}"
             one_liner = f"\"{fe.one_line_call()}\""
             arguments = fe.parse_arguments()
             args = f"({len(arguments)}) {arguments}"
@@ -76,5 +92,8 @@ class SourceFile:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    sf = SourceFile(Path("/eplus/repos/1eplus/src/EnergyPlus/UnitarySystem.cc"))
+    p = Path("/eplus/repos/4eplus/src/EnergyPlus/UnitarySystem.cc")
+    sf = SourceFile(p)
     sf.process_error_calls_in_file()
+    # sf.replace_all_errors()
+    p.write_text(sf.replace_all_errors())

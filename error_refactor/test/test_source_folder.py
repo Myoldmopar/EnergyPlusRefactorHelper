@@ -11,4 +11,4 @@ class TestSourceFolder(TestCase):
 
     def test_it_finds_matching_files_recursively(self):
         sf = SourceFolder(self.fake_source_folder)
-        self.assertEqual(3, len(sf.matched_files))
+        self.assertEqual(2, len(sf.matched_files))

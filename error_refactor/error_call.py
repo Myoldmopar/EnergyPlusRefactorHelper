@@ -64,7 +64,7 @@ class ErrorCallType:
 
 
 class ErrorCall:
-    MAX_LINES_FOR_ERROR_CALL = 11  # to detect/avoid parsing errors
+    MAX_LINES_FOR_ERROR_CALL = 13  # to detect/avoid parsing errors
 
     def __init__(self, line_start: int, char_start_in_file: int, char_start_first_line: int, first_line_raw_text: str):
         self.multiline_text = [first_line_raw_text]
@@ -83,7 +83,7 @@ class ErrorCall:
         self.char_end_in_file = end_character_index
         self.appears_successful = appears_successful
 
-    def one_line_call(self) -> str:
+    def modified_version(self) -> str:
         skip_first_line_to_call_start = []
         for i, t in enumerate(self.multiline_text):
             if i == 0:
@@ -93,7 +93,7 @@ class ErrorCall:
         return ''.join(skip_first_line_to_call_start).strip()
 
     def parse_arguments(self) -> List[str]:
-        single_liner = self.one_line_call()
+        single_liner = self.modified_version()
         args = []
         current_arg = ""
         grouping_stack = []
@@ -145,3 +145,15 @@ class ErrorCall:
             else:
                 current_arg += c
         return [a.strip() for a in args]
+
+    def preview(self):
+        ok = "LOOKS OK" if self.appears_successful else "PROBLEM"
+        lines = f"Lines {self.line_start:05d}:{self.line_end:05d}"
+        chars = f"Characters {self.char_start_in_file:08d}:{self.char_end_in_file:08d}"
+        modified = f"\"{self.modified_version()}\""
+        arguments = self.parse_arguments()
+        args = f"({len(arguments)}) {arguments}"
+        return f"{ok} -- {lines} -- {chars} -- {modified} -- {args}\n"
+
+    def __str__(self):
+        return f"{self.line_start} - {self.line_end} : {self.modified_version()[:35]}"

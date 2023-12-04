@@ -12,9 +12,9 @@ class TestSourceFile(TestCase):
 
     def test_basic_operation(self):
         sf = SourceFile(self.test_file)
-        sf.process_error_calls_in_file()
+        sf.find_errors_in_original_text()
         self.assertEqual(9, len(sf.found_errors))
-        self.assertIsNotNone(sf.get_summary())
+        self.assertIsNotNone(sf.preview())
 
     def test_complex_ish_file(self):
         _, file_path = mkstemp()
@@ -43,7 +43,7 @@ namespace UnitarySystems {
 """
         p.write_text(raw_text)
         sf = SourceFile(p)
-        sf.process_error_calls_in_file()
+        sf.find_errors_in_original_text()
         self.assertEqual(2, len(sf.found_errors))
         found_error = sf.found_errors[0]
         self.assertTrue(found_error.appears_successful)
@@ -67,6 +67,10 @@ namespace UnitarySystems {
             SO,
             WELL,
             THIS,
+            THIS,
+            THIS,
+            THIS,
+            THIS,
             IS,
             LONG
         )
@@ -74,7 +78,7 @@ namespace UnitarySystems {
         """
         p.write_text(raw_text)
         sf = SourceFile(p)
-        sf.process_error_calls_in_file()
+        sf.find_errors_in_original_text()
         found_error = sf.found_errors[0]
         self.assertFalse(found_error.appears_successful)
 

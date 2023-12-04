@@ -13,7 +13,7 @@ class TestErrorCall(TestCase):
         p = Path(file_path)
         p.write_text(raw_text)
         sf = SourceFile(p)
-        sf.process_error_calls_in_file()
+        sf.find_errors_in_original_text()
         return sf.found_errors[0]
 
     def test_normal_single_line_error_call(self):

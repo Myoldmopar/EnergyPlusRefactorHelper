@@ -5,29 +5,48 @@ from error_refactor.error_call import ErrorCall, ErrorCallStrings
 
 
 class SourceFile:
+    """
+    This class represents a single source code file, processing it to find all existing error message calls, and
+    providing functionality to refactor them into a new form automatically.
+    """
     def __init__(self, path: Path):
         self.path = path
         self.original_file_text = self.path.read_text()
-        self.found_errors: List[ErrorCall] = []
+        self.file_lines = self.original_file_text.split('\n')
+        self.found_errors = self.find_errors_in_original_text()
+        self.error_distribution = self.get_error_distribution()
+        self.new_file_text = self.get_file_text_with_errors_replaced()
 
     @staticmethod
     def get_call_type_and_starting_index_from_raw_line(full_raw_line: str) -> Tuple[Optional[str], int]:
+        """
+        A simple worker function that searches a source line looking for one of the error message strings, and if found,
+        returns both the found value along with the index in the line where it was found.
+
+        :param full_raw_line: A full line from the rwa source code, to be searched.
+        :return: A tuple, where the first item is an optional found error call string, and the second is the index.
+        """
         for ect in ErrorCallStrings.all_calls():
             if ect in full_raw_line:
                 return ect, full_raw_line.index(ect)
         return None, -1
 
-    def process_error_calls_in_file(self):
-        self.original_file_text = self.path.read_text()
-        file_lines = self.original_file_text.split('\n')
-        num_lines_in_file = len(file_lines)
+    def find_errors_in_original_text(self) -> List[ErrorCall]:
+        """
+        Processes the original source code for this file, identifying all error messages.
+        This function fills an array with ErrorCall objects for each error message processed.
+
+        :return: A list of ErrorCall instances, one for each error message processed.
+        """
+        num_lines_in_file = len(self.file_lines)
         current_line_number = 1
         err: Optional[ErrorCall] = None
         parsing_multiline = False
         raw_line_starting_character_index = 0
         raw_line_ending_character_index = -1
+        found_errors = []
         while current_line_number <= num_lines_in_file:
-            raw_line = file_lines[current_line_number-1]
+            raw_line = self.file_lines[current_line_number-1]
             raw_line_ending_character_index += len(raw_line) + 1  # includes the \n at the end of the line
             cleaned_line = raw_line
             if '//' in raw_line:  # danger -- could be inside a string literal
@@ -37,17 +56,16 @@ class SourceFile:
                 if len(err.multiline_text) > ErrorCall.MAX_LINES_FOR_ERROR_CALL:
                     character_end_index = err.char_start_in_file + len(raw_line)
                     err.complete(current_line_number, character_end_index, False)
-                    self.found_errors.append(err)
+                    found_errors.append(err)
                     err = None
                     parsing_multiline = False
                 elif cleaned_line.strip().endswith(';'):
                     character_end_index = raw_line_starting_character_index + raw_line.rfind(';')
                     err.complete(current_line_number, character_end_index, True)
-                    self.found_errors.append(err)
+                    found_errors.append(err)
                     err = None
                     parsing_multiline = False
             else:
-                # check if this line has _any_ of the
                 if any([x in cleaned_line for x in ErrorCallStrings.all_calls()]):
                     call_type, call_index_in_line = self.get_call_type_and_starting_index_from_raw_line(raw_line)
                     character_start_index = raw_line_starting_character_index + call_index_in_line
@@ -55,45 +73,54 @@ class SourceFile:
                     if cleaned_line.strip().endswith(';'):
                         character_end_index = raw_line_starting_character_index + raw_line.rfind(';')
                         err.complete(current_line_number, character_end_index, True)
-                        self.found_errors.append(err)
+                        found_errors.append(err)
                         err = None
                     else:
                         parsing_multiline = True
             raw_line_starting_character_index = raw_line_ending_character_index + 1
             current_line_number += 1
+        return found_errors
 
-    @staticmethod
-    def replace_and_insert(original_string: str, start_index: int, end_index: int, new_substring: str) -> str:
-        return original_string[:start_index] + new_substring + original_string[end_index:]
+    def get_error_distribution(self) -> List[int]:
+        """
+        Returns a distribution of error lines for the given file.  For now, this simply returns a 0 or 1, where
+        1 indicates the line is part of an error message, and 0 means it is not.  This will be modified to return more
+        meaningful values, such as 1 is a warning, 2 is a severe, 3 is a continue, 4 is a fatal, etc.
 
-    def replace_all_errors(self) -> str:
-        replacement_text = self.original_file_text
+        :return: An array of integers, one per line of original source code, indicating error status for that line.
+        """
+        lines_with_errors = []
+        for fe in self.found_errors:
+            for line_num in range(fe.line_start, fe.line_end+1):
+                if line_num not in lines_with_errors:  # shouldn't be needed...
+                    lines_with_errors.append(line_num)
+        all_lines = [1 if x + 1 in lines_with_errors else 0 for x in range(len(self.file_lines))]
+        return all_lines
+
+    def get_file_text_with_errors_replaced(self) -> str:
+        """
+        Modifies the original file text, replacing every found error with the modified version.
+
+        :return: Returns the modified source code as a Python string.
+        """
+        new_text = self.original_file_text
         for fe in reversed(self.found_errors):
-            # char_indices = f"{fe.char_start_in_file}-{fe.char_end_in_file}"
-            # chars_to_replace = self.original_file_text[fe.char_start_in_file:fe.char_end_in_file+1]
-            # print(f"Replacing characters {char_indices} *** {chars_to_replace} *** with *** {fe.one_line_call()} ***")
-            replacement_text = self.replace_and_insert(
-                replacement_text, fe.char_start_in_file, fe.char_end_in_file+1, fe.one_line_call()
-            )
-        return replacement_text
+            new_text = new_text[:fe.char_start_in_file] + fe.modified_version() + new_text[fe.char_end_in_file + 1:]
+        return new_text
 
-    def get_summary(self) -> str:
+    def preview(self) -> str:
+        """
+        Generates a nice summary of all errors found in this source file.
+
+        :return: A human-readable string previewing the refactor about to be done.
+        """
         ret = ''
         for i, fe in enumerate(self.found_errors):
-            num = f"#{i:04d}"
-            ok = "LOOKS OK" if fe.appears_successful else "PROBLEM"
-            lines = f"Lines {fe.line_start:05d}:{fe.line_end:05d}"
-            chars = f"Characters {fe.char_start_in_file:08d}:{fe.char_end_in_file:08d}"
-            one_liner = f"\"{fe.one_line_call()}\""
-            arguments = fe.parse_arguments()
-            args = f"({len(arguments)}) {arguments}"
-            ret += f"{num}: {ok} -- {lines} -- {chars} -- {one_liner} -- {args}\n"
+            ret += f"#{i:04d}: {fe.preview()}\n"
         return ret
 
 
 if __name__ == "__main__":  # pragma: no cover
     p = Path("/eplus/repos/4eplus/src/EnergyPlus/UnitarySystem.cc")
     sf = SourceFile(p)
-    sf.process_error_calls_in_file()
-    # sf.replace_all_errors()
-    p.write_text(sf.replace_all_errors())
+    p.write_text(sf.get_file_text_with_errors_replaced())

@@ -15,6 +15,7 @@ class SourceFile:
         self.file_lines = self.original_file_text.split('\n')
         self.found_errors = self.find_errors_in_original_text()
         self.error_distribution = self.get_error_distribution()
+        self.advanced_error_distribution = self.get_error_distribution(advanced=True)
         self.new_file_text = self.get_file_text_with_errors_replaced()
 
     @staticmethod
@@ -81,12 +82,14 @@ class SourceFile:
             current_line_number += 1
         return found_errors
 
-    def get_error_distribution(self) -> List[int]:
+    def get_error_distribution(self, advanced: bool = False) -> List[int]:
         """
         Returns a distribution of error lines for the given file.  For now, this simply returns a 0 or 1, where
         1 indicates the line is part of an error message, and 0 means it is not.  This will be modified to return more
         meaningful values, such as 1 is a warning, 2 is a severe, 3 is a continue, 4 is a fatal, etc.
 
+        :param advanced: By default, this is false, and the function will only return 0 or 1 in the list, but if this
+                         is True, the value will contain integers from the
         :return: An array of integers, one per line of original source code, indicating error status for that line.
         """
         lines_with_errors = []

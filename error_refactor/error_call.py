@@ -3,29 +3,53 @@ from typing import List
 
 class ErrorCallStrings:
     ShowFatalError = "ShowFatalError("
+    EnumShowFatalError = 0
     ShowSevereError = "ShowSevereError("
+    EnumShowSevereError = 1
     ShowSevereMessage = "ShowSevereMessage("
+    EnumShowSevereMessage = 2
     ShowContinueError = "ShowContinueError("
+    EnumShowContinueError = 3
     ShowContinueErrorTimeStamp = "ShowContinueErrorTimeStamp("
+    EnumShowContinueErrorTimeStamp = 4
     ShowMessage = "ShowMessage("
+    EnumShowMessage = 5
     ShowWarningError = "ShowWarningError("
+    EnumShowWarningError = 6
     ShowWarningMessage = "ShowWarningMessage("
+    EnumShowWarningMessage = 7
     ShowRecurringSevereErrorAtEnd = "ShowRecurringSevereErrorAtEnd("
+    EnumShowRecurringSevereErrorAtEnd = 8
     ShowRecurringWarningErrorAtEnd = "ShowRecurringWarningErrorAtEnd("
+    EnumShowRecurringWarningErrorAtEnd = 9
     ShowRecurringContinueErrorAtEnd = "ShowRecurringContinueErrorAtEnd("
+    EnumShowRecurringContinueErrorAtEnd = 10
     StoreRecurringErrorMessage = "StoreRecurringErrorMessage("
+    EnumStoreRecurringErrorMessage = 11
     ShowErrorMessage = "ShowErrorMessage("
+    EnumShowErrorMessage = 12
     SummarizeErrors = "SummarizeErrors("
+    EnumSummarizeErrors = 13
     ShowRecurringErrors = "ShowRecurringErrors("
+    EnumShowRecurringErrors = 14
     ShowSevereDuplicateName = "ShowSevereDuplicateName("
+    EnumShowSevereDuplicateName = 15
     ShowSevereItemNotFound = "ShowSevereItemNotFound("
+    EnumShowSevereItemNotFound = 16
     ShowSevereInvalidKey = "ShowSevereInvalidKey("
+    EnumShowSevereInvalidKey = 17
     ShowSevereInvalidBool = "ShowSevereInvalidBool("
+    EnumShowSevereInvalidBool = 18
     ShowSevereEmptyField = "ShowSevereEmptyField("
+    EnumShowSevereEmptyField = 19
     ShowWarningInvalidKey = "ShowWarningInvalidKey("
+    EnumShowWarningInvalidKey = 20
     ShowWarningInvalidBool = "ShowWarningInvalidBool("
+    EnumShowWarningInvalidBool = 21
     ShowWarningEmptyField = "ShowWarningEmptyField("
+    EnumShowWarningEmptyField = 22
     ShowWarningItemNotFound = "ShowWarningItemNotFound("
+    EnumShowWarningItemNotFound = 23
 
     @staticmethod
     def all_calls() -> List[str]:

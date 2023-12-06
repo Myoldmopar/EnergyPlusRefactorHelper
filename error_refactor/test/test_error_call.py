@@ -20,6 +20,7 @@ class TestErrorCall(TestCase):
         ec = TestErrorCall.error_call_builder("ShowContinueError(state, \"Something happened\", DummyArgument);")
         args = ec.parse_arguments()
         self.assertEqual(3, len(args))
+        self.assertIsInstance(str(ec), str)
 
     def test_error_call_with_embedded_quote(self):
         ec = TestErrorCall.error_call_builder('ShowContinueError(state, "Something happened");')

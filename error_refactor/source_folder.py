@@ -1,7 +1,6 @@
 from itertools import zip_longest
 import matplotlib.pyplot as plt
 from pathlib import Path
-from sys import stdout
 from typing import List
 
 from error_refactor.logger import logger
@@ -32,12 +31,12 @@ class SourceFolder:
 
     def analyze(self):
         for file_num, source_file in enumerate(sorted(self.matched_files)):
-            percent_done = 100 * (file_num / len(self.matched_files))
+            percent_done = round(100 * (file_num / len(self.matched_files)), 3)
             self.processed_files.append(SourceFile(source_file))
             filled_length = int(80 * (percent_done / 100.0))
             bar = "*" * filled_length + '-' * (80 - filled_length)
-            print(f"\rProgress: |{bar}| {percent_done}% - {source_file.name}", end='\r')
-            stdout.flush()
+            print(f"\r   Progress: |{bar}| {percent_done}% - {source_file.name}", end='')
+        print()
         logger.log("Finished Processing, ready to generate results")
 
     def generate_outputs(self, output_dir: Path) -> None:
@@ -73,7 +72,7 @@ class SourceFolder:
             axes[i].set_ylim([0, 1])
             filled_length = int(80 * (percent_done / 100.0))
             bar = "*" * filled_length + '-' * (80 - filled_length)
-            print(f"\rProgress: |{bar}| {percent_done}% - {file_names[i]}")
-            stdout.flush()
+            print(f"\r   Progress: |{bar}| {percent_done}% - {file_names[i]}", end='')
+        print()
         print("Results processed, plot being set up now")
         plt.savefig(output_file_file)

@@ -14,16 +14,14 @@ def run(_argv: List[str]) -> int:
     parser.add_argument(
         'source_directory',
         action='store',
-        required=True,
         help='Source directory to analyze, usually {repo_root}/src/EnergyPlus'
     )
     parser.add_argument(
         'target_directory',
         action='store',
-        required=True,
         help='Target directory for output files/results'
     )
-    args = parser.parse_args(args=_argv)
+    args = parser.parse_args(args=_argv[1:])
     source_path = Path(args.source_directory)
     target_path = Path(args.target_directory)
     file_names_to_ignore = ['UtilityRoutines.cc']

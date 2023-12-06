@@ -7,7 +7,7 @@ class Logger:
     def __init__(self, log_file: Optional[Path] = None, mute_stdout: bool = False):
         self._file = log_file
         if self._file:
-            self._file.unlink()
+            self._file.write_text("")
         self._print_to_stdout = not mute_stdout
 
     def log(self, message: str):

@@ -17,17 +17,17 @@ def run(_argv: List[str]) -> int:
         help='Source directory to analyze, usually {repo_root}/src/EnergyPlus'
     )
     parser.add_argument(
-        'target_directory',
+        'output_directory',
         action='store',
         help='Target directory for output files/results'
     )
     args = parser.parse_args(args=_argv[1:])
     source_path = Path(args.source_directory)
-    target_path = Path(args.target_directory)
+    output_path = Path(args.output_directory)
     file_names_to_ignore = ['UtilityRoutines.cc']
     sf = SourceFolder(source_path, file_names_to_ignore)
     sf.analyze()
-    sf.generate_outputs(target_path)
+    sf.generate_outputs(output_path)
     return 0
 
 

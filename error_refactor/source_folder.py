@@ -31,15 +31,17 @@ class SourceFolder:
 
     def analyze(self):
         for file_num, source_file in enumerate(sorted(self.matched_files)):
-            percent_done = round(100 * (file_num / len(self.matched_files)), 3)
+            percent_done = round(100 * ((file_num + 1) / len(self.matched_files)), 3)
             self.processed_files.append(SourceFile(source_file))
             filled_length = int(80 * (percent_done / 100.0))
             bar = "*" * filled_length + '-' * (80 - filled_length)
-            print(f"\r   Progress: |{bar}| {percent_done}% - {source_file.name}", end='')
+            print(f"\r                  Progress : |{bar}| {percent_done}% - {source_file.name}", end='')
         print()
         logger.log("Finished Processing, ready to generate results")
 
     def generate_outputs(self, output_dir: Path) -> None:
+        if not output_dir.exists():
+            output_dir.mkdir()
         self.generate_file_summary_csv(output_dir / 'file_summary.csv')
         self.generate_line_details_csv(output_dir / 'lines_summary.csv')
         self.generate_line_details_plot(output_dir / 'error_plot.png')
@@ -64,7 +66,7 @@ class SourceFolder:
         fig, axes = plt.subplots(len(self.processed_files), 1, layout='constrained')
         fig.set_size_inches(8, int(len(self.processed_files) / 2))
         for i, x in enumerate(data):
-            percent_done = 100 * (i / len(data))
+            percent_done = 100 * ((i + 1) / len(data))
             axes[i].plot(x)
             axes[i].set_ylabel(file_names[i], rotation=0, labelpad=150)
             axes[i].set_yticklabels([])
@@ -72,7 +74,7 @@ class SourceFolder:
             axes[i].set_ylim([0, 1])
             filled_length = int(80 * (percent_done / 100.0))
             bar = "*" * filled_length + '-' * (80 - filled_length)
-            print(f"\r   Progress: |{bar}| {percent_done}% - {file_names[i]}", end='')
+            print(f"\r                  Progress : |{bar}| {percent_done}% - {file_names[i]}", end='')
         print()
-        print("Results processed, plot being set up now")
+        logger.log("Results processed, plot being set up now (may take some time!)")
         plt.savefig(output_file_file)

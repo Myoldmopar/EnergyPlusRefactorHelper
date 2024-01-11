@@ -28,7 +28,7 @@ class TestErrorCall:
 
     def test_error_call_with_complex_escapes(self):
         ec = TestErrorCall.error_call_builder(
-            """ShowSevereMessage(state, format("{} \"{}\":", 
+            """ShowSevereMessage(state, format("{} \"{}\":",
             DataPlant::PlantEquipTypeNames[static_cast<int>(this->EIRHPType)], this->name));"""
         )
         args = ec.parse_arguments()
@@ -49,7 +49,7 @@ class TestErrorCall:
     def test_another_error_call(self):
         ec = TestErrorCall.error_call_builder("""ShowWarningError( // RecurringWarningErrorAtEnd(
                             state,
-                            format("{} \"{}\": FFHP evaporator DeltaTemp = 0 in mass flow calculation warning continues...",
+                            format("{} \"{}\": FFHP evaporator DeltaTemp = 0 in mass flow calculation continues...",
                                    DataPlant::PlantEquipTypeNames[static_cast<int>(this->EIRHPType)],
                                    this->name));""")
         args = ec.parse_arguments()

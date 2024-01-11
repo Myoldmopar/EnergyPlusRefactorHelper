@@ -6,7 +6,15 @@ from typing import List
 from error_refactor.source_folder import SourceFolder
 
 
-def run(_argv: List[str]) -> int:
+def run_with_args(source_path: Path, output_path: Path) -> int:  # pragma: no cover
+    file_names_to_ignore = ['UtilityRoutines.cc']
+    sf = SourceFolder(source_path, file_names_to_ignore)
+    sf.analyze()
+    sf.generate_outputs(output_path)
+    return 0
+
+
+def run_cli(_argv: List[str]) -> int:
     parser = ArgumentParser(
         prog='ErrorRefactorHelper',
         description='Provides parsing, analysis, and refactoring services for error call work',
@@ -24,12 +32,8 @@ def run(_argv: List[str]) -> int:
     args = parser.parse_args(args=_argv[1:])
     source_path = Path(args.source_directory)
     output_path = Path(args.output_directory)
-    file_names_to_ignore = ['UtilityRoutines.cc']
-    sf = SourceFolder(source_path, file_names_to_ignore)
-    sf.analyze()
-    sf.generate_outputs(output_path)
-    return 0
+    return run_with_args(source_path, output_path)
 
 
 if __name__ == '__main__':
-    exit(run(argv))
+    exit(run_cli(argv))

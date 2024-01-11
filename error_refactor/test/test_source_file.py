@@ -1,20 +1,19 @@
 from pathlib import Path
 from tempfile import mkstemp
-from unittest import TestCase
 
 from error_refactor.source_file import SourceFile
 
+this_file = Path(__file__).resolve()
+test_file = this_file.parent / 'fake_source_folder' / 'test_file.cc'
 
-class TestSourceFile(TestCase):
-    def setUp(self):
-        this_file = Path(__file__).resolve()
-        self.test_file = this_file.parent / 'fake_source_folder' / 'test_file.cc'
+
+class TestSourceFile:
 
     def test_basic_operation(self):
-        sf = SourceFile(self.test_file)
+        sf = SourceFile(test_file)
         sf.find_errors_in_original_text()
-        self.assertEqual(9, len(sf.found_errors))
-        self.assertIsNotNone(sf.preview())
+        assert len(sf.found_errors) == 9
+        assert sf.preview() is not None
 
     def test_complex_ish_file(self):
         _, file_path = mkstemp()
@@ -44,15 +43,50 @@ namespace UnitarySystems {
         p.write_text(raw_text)
         sf = SourceFile(p)
         sf.find_errors_in_original_text()
-        self.assertEqual(2, len(sf.found_errors))
+        assert len(sf.found_errors) == 2
         found_error = sf.found_errors[0]
-        self.assertTrue(found_error.appears_successful)
-        self.assertEqual(124, found_error.char_start_in_file)
-        self.assertEqual(187, found_error.char_end_in_file)
+        assert found_error.appears_successful
+        assert found_error.char_start_in_file == 124
+        assert found_error.char_end_in_file == 187
         found_error_2 = sf.found_errors[1]
-        self.assertTrue(found_error_2.appears_successful)
-        self.assertEqual(250, found_error_2.char_start_in_file)
-        self.assertEqual(465, found_error_2.char_end_in_file)
+        assert found_error_2.appears_successful
+        assert found_error_2.char_start_in_file == 250
+        assert found_error_2.char_end_in_file == 465
+
+    def test_last_error_group_has_multiple_errors(self):
+        _, file_path = mkstemp()
+        p = Path(file_path)
+        raw_text = """
+void func() {
+    ShowSevereError(state, format("Factory Error: {}", objectName));
+    int i = 1;
+    ShowSevereError(state, format("Factory Error: {}", objectName));
+    ShowSevereError(state, format("Factory Error: {}", objectName));
+}
+"""
+        p.write_text(raw_text)
+        sf = SourceFile(p)
+        sf.find_errors_in_original_text()
+        assert len(sf.found_errors) == 3
+        error_call_info = sf.get_all_error_call_info_dict()
+        assert len(error_call_info) == 2
+        error_preview = sf.preview()
+        assert isinstance(error_preview, str)
+
+    def test_error_after_text(self):
+        _, file_path = mkstemp()
+        p = Path(file_path)
+        raw_text = """
+          if (j > NumCur) ShowFatalError(state, "Out of range, too high (FAN) in ADS simulation");
+        """
+        p.write_text(raw_text)
+        sf = SourceFile(p)
+        sf.find_errors_in_original_text()
+        assert len(sf.found_errors) == 1
+        found_error = sf.found_errors[0]
+        assert found_error.appears_successful
+        assert found_error.char_start_in_file == 27
+        assert found_error.char_end_in_file == 98
 
     def test_skips_long_parse(self):
         _, file_path = mkstemp()
@@ -80,15 +114,15 @@ namespace UnitarySystems {
         sf = SourceFile(p)
         sf.find_errors_in_original_text()
         found_error = sf.found_errors[0]
-        self.assertFalse(found_error.appears_successful)
+        assert not found_error.appears_successful
 
     def test_call_type_worker_function(self):
         message = "Something - ShowContinueError(blah,"
         call, ind = SourceFile.get_call_type_and_starting_index_from_raw_line(message)
-        self.assertEqual("ShowContinueError(", call)
-        self.assertEqual(12, ind)
+        assert call == 3
+        assert ind == 12
 
         message = "Nothing here!"
         call, ind = SourceFile.get_call_type_and_starting_index_from_raw_line(message)
-        self.assertIsNone(call)
-        self.assertEqual(-1, ind)
+        assert call is None
+        assert ind == -1

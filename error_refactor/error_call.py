@@ -90,7 +90,9 @@ class ErrorCallType:
 class ErrorCall:
     MAX_LINES_FOR_ERROR_CALL = 13  # to detect/avoid parsing errors
 
-    def __init__(self, line_start: int, char_start_in_file: int, char_start_first_line: int, first_line_raw_text: str):
+    def __init__(self, call_type: int, line_start: int, char_start_in_file: int, char_start_first_line: int,
+                 first_line_raw_text: str):
+        self.call_type = call_type
         self.multiline_text = [first_line_raw_text]
         self.line_start = line_start
         self.char_start_in_file = char_start_in_file
@@ -107,7 +109,7 @@ class ErrorCall:
         self.char_end_in_file = end_character_index
         self.appears_successful = appears_successful
 
-    def modified_version(self) -> str:
+    def as_single_line(self) -> str:
         skip_first_line_to_call_start = []
         for i, t in enumerate(self.multiline_text):
             if i == 0:
@@ -116,21 +118,40 @@ class ErrorCall:
                 skip_first_line_to_call_start.append(t.strip())
         return ''.join(skip_first_line_to_call_start).strip()
 
+    def trim_first_line(self) -> list[str]:
+        skip_first_line_to_call_start = []
+        for i, t in enumerate(self.multiline_text):
+            if i == 0:
+                skip_first_line_to_call_start.append(t[self.char_start_first_line:].strip())
+            else:
+                skip_first_line_to_call_start.append(t.strip())
+        return [x.strip() for x in skip_first_line_to_call_start]
+
     def parse_arguments(self) -> List[str]:
-        single_liner = self.modified_version()
+        one_string = '\n'.join(self.trim_first_line())
         args = []
         current_arg = ""
         grouping_stack = []
         ignore_next_char = False
         reached_args = False
-        for c in single_liner:
+        about_to_enter_string_literal = False
+        reading_comment_until_new_line = False
+        for i, c in enumerate(one_string):
             inside_literal = "\"" in grouping_stack or '\'' in grouping_stack
+            inside_raw_literal = 'R"(' in grouping_stack
             if not reached_args:  # haven't reached the args yet, just wait for first parenthesis
                 if c == '(':
                     grouping_stack.append('(')
                     reached_args = True
                 continue
-            if inside_literal and c == '\\':
+            if reading_comment_until_new_line:
+                if c == '\n':
+                    reading_comment_until_new_line = False
+            elif inside_raw_literal:
+                current_arg += c
+                if c == '"' and one_string[i-1] == ')':
+                    grouping_stack.pop()
+            elif inside_literal and c == '\\':
                 current_arg += c
                 ignore_next_char = True
             elif ignore_next_char:
@@ -141,7 +162,11 @@ class ErrorCall:
                 if grouping_stack[-1] == '\"':
                     grouping_stack.pop()
                 else:
-                    grouping_stack.append(c)
+                    if about_to_enter_string_literal:
+                        grouping_stack.append('R"(')
+                        about_to_enter_string_literal = False
+                    else:
+                        grouping_stack.append(c)
             # elif c == '\'':  # no apostrophe for c strings
             #     current_arg += c
             #     if grouping_stack[-1] == '\'':
@@ -167,17 +192,26 @@ class ErrorCall:
                 args.append(current_arg)
                 current_arg = ''
             else:
-                current_arg += c
+                if c == 'R' and one_string[i+1] == '"' and one_string[i+2] == '(':
+                    # it appears we are about to enter a raw literal
+                    about_to_enter_string_literal = True
+                    current_arg += c
+                elif c == '/' and one_string[i+1] == '/':
+                    reading_comment_until_new_line = True
+                elif c == '\n':
+                    continue  # just eat the newline
+                else:
+                    current_arg += c
         return [a.strip() for a in args]
 
     def preview(self):
         ok = "LOOKS OK" if self.appears_successful else "PROBLEM"
         lines = f"Lines {self.line_start:05d}:{self.line_end:05d}"
         chars = f"Characters {self.char_start_in_file:08d}:{self.char_end_in_file:08d}"
-        modified = f"\"{self.modified_version()}\""
+        modified = f"\"{self.as_single_line()}\""
         arguments = self.parse_arguments()
         args = f"({len(arguments)}) {arguments}"
         return f"{ok} -- {lines} -- {chars} -- {modified} -- {args}\n"
 
     def __str__(self):
-        return f"{self.line_start} - {self.line_end} : {self.modified_version()[:35]}"
+        return f"{self.line_start} - {self.line_end} : {self.as_single_line()[:35]}"

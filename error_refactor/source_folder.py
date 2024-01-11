@@ -1,4 +1,5 @@
 from itertools import zip_longest
+from json import dumps
 import matplotlib.pyplot as plt
 from pathlib import Path
 from typing import List
@@ -42,9 +43,22 @@ class SourceFolder:
     def generate_outputs(self, output_dir: Path) -> None:
         if not output_dir.exists():
             output_dir.mkdir()
+        self.generate_error_json(output_dir / 'errors.json')
         self.generate_file_summary_csv(output_dir / 'file_summary.csv')
         self.generate_line_details_csv(output_dir / 'lines_summary.csv')
-        self.generate_line_details_plot(output_dir / 'error_plot.png')
+        self.generate_line_details_plot(output_dir / 'distribution_plot.png')
+
+    def generate_error_json(self, output_json_file: Path) -> None:
+        full_json_content = {}
+        for file_num, source_file in enumerate(self.processed_files):
+            percent_done = round(100 * ((file_num + 1) / len(self.matched_files)), 3)
+            full_json_content[source_file.path.name] = source_file.get_all_error_call_info_dict()
+            filled_length = int(80 * (percent_done / 100.0))
+            bar = "*" * filled_length + '-' * (80 - filled_length)
+            print(f"\r                  Progress : |{bar}| {percent_done}% - {source_file.path.name}", end='')
+        print()
+        output_json_file.write_text(dumps(full_json_content, indent=2))
+        logger.log("Finished Building JSON outputs")
 
     def generate_file_summary_csv(self, output_csv_file: Path) -> None:
         s = "File,Good,Bad\n"
@@ -62,7 +76,7 @@ class SourceFolder:
 
     def generate_line_details_plot(self, output_file_file: Path) -> None:
         file_names = [x.path.name for x in self.processed_files]
-        data = [x.error_distribution for x in self.processed_files]
+        data = [x.advanced_error_distribution for x in self.processed_files]
         fig, axes = plt.subplots(len(self.processed_files), 1, layout='constrained')
         fig.set_size_inches(8, int(len(self.processed_files) / 2))
         for i, x in enumerate(data):
@@ -71,7 +85,7 @@ class SourceFolder:
             axes[i].set_ylabel(file_names[i], rotation=0, labelpad=150)
             axes[i].set_yticklabels([])
             axes[i].get_xaxis().set_visible(False)
-            axes[i].set_ylim([0, 1])
+            axes[i].set_ylim([0, 20])
             filled_length = int(80 * (percent_done / 100.0))
             bar = "*" * filled_length + '-' * (80 - filled_length)
             print(f"\r                  Progress : |{bar}| {percent_done}% - {file_names[i]}", end='')

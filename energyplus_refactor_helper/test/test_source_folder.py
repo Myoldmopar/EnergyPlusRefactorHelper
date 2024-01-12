@@ -23,7 +23,6 @@ class TestSourceFolder:
         sf = SourceFolder(fake_source_folder, ['file_to_ignore.cc'], ErrorCallStrings.all_calls())
         assert len(sf.matched_files) == 2
 
-
     def test_full_workflow(self):
         fake_source_folder, dummy_output_folder = TestSourceFolder.set_up_dirs()
         sf = SourceFolder(fake_source_folder, ['file_to_ignore.cc'], ErrorCallStrings.all_calls())

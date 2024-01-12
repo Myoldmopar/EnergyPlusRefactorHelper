@@ -4,13 +4,14 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from typing import List
 
-from error_refactor.logger import logger
-from error_refactor.source_file import SourceFile
+from energyplus_refactor_helper.logger import logger
+from energyplus_refactor_helper.source_file import SourceFile
 
 
 class SourceFolder:
-    def __init__(self, root_path: Path, file_names_to_ignore: List[str]):
+    def __init__(self, root_path: Path, file_names_to_ignore: List[str], function_call_list: list[str]):
         self.root = root_path
+        self.function_call_list = function_call_list
         self.file_names_to_ignore = file_names_to_ignore
         self.matched_files = self.locate_source_files()
         logger.log(f"SourceFolder object constructed, identified {len(self.matched_files)} files ready to analyze.")
@@ -33,7 +34,7 @@ class SourceFolder:
     def analyze(self):
         for file_num, source_file in enumerate(sorted(self.matched_files)):
             percent_done = round(100 * ((file_num + 1) / len(self.matched_files)), 3)
-            self.processed_files.append(SourceFile(source_file))
+            self.processed_files.append(SourceFile(source_file, self.function_call_list))
             filled_length = int(80 * (percent_done / 100.0))
             bar = "*" * filled_length + '-' * (80 - filled_length)
             print(f"\r                  Progress : |{bar}| {percent_done}% - {source_file.name}", end='')
@@ -52,7 +53,7 @@ class SourceFolder:
         full_json_content = {}
         for file_num, source_file in enumerate(self.processed_files):
             percent_done = round(100 * ((file_num + 1) / len(self.matched_files)), 3)
-            full_json_content[source_file.path.name] = source_file.get_all_error_call_info_dict()
+            full_json_content[source_file.path.name] = source_file.get_call_info_dict()
             filled_length = int(80 * (percent_done / 100.0))
             bar = "*" * filled_length + '-' * (80 - filled_length)
             print(f"\r                  Progress : |{bar}| {percent_done}% - {source_file.path.name}", end='')
@@ -63,32 +64,42 @@ class SourceFolder:
     def generate_file_summary_csv(self, output_csv_file: Path) -> None:
         s = "File,Good,Bad\n"
         for result in self.processed_files:
-            good = sum([1 if fe.appears_successful else 0 for fe in result.found_errors])
-            bad = sum([0 if fe.appears_successful else 1 for fe in result.found_errors])
+            good = sum([1 if fe.appears_successful else 0 for fe in result.found_functions])
+            bad = sum([0 if fe.appears_successful else 1 for fe in result.found_functions])
             s += f"{result.path},{good},{bad}\n"
         output_csv_file.write_text(s)
 
     def generate_line_details_csv(self, output_csv_file: Path) -> None:
-        all_lists = [[x.path.name, *x.error_distribution] for x in self.processed_files]
+        all_lists = [[x.path.name, *x.function_distribution] for x in self.processed_files]
         zipped_lists = zip_longest(*all_lists, fillvalue='')
         csv_string = ''.join([",".join(map(str, row)) + "\n" for row in zipped_lists])
         output_csv_file.write_text(csv_string)
 
     def generate_line_details_plot(self, output_file_file: Path) -> None:
         file_names = [x.path.name for x in self.processed_files]
-        data = [x.advanced_error_distribution for x in self.processed_files]
-        fig, axes = plt.subplots(len(self.processed_files), 1, layout='constrained')
-        fig.set_size_inches(8, int(len(self.processed_files) / 2))
-        for i, x in enumerate(data):
-            percent_done = 100 * ((i + 1) / len(data))
-            axes[i].plot(x)
-            axes[i].set_ylabel(file_names[i], rotation=0, labelpad=150)
-            axes[i].set_yticklabels([])
-            axes[i].get_xaxis().set_visible(False)
-            axes[i].set_ylim([0, 20])
-            filled_length = int(80 * (percent_done / 100.0))
-            bar = "*" * filled_length + '-' * (80 - filled_length)
-            print(f"\r                  Progress : |{bar}| {percent_done}% - {file_names[i]}", end='')
-        print()
-        logger.log("Results processed, plot being set up now (may take some time!)")
+        data = [x.advanced_function_distribution for x in self.processed_files]
+        data_not_none = [d for d in data if d is not None]
+        num_not_none = len(data_not_none)
+        if num_not_none > 1:
+            fig, axes = plt.subplots(num_not_none, 1, layout='constrained')
+            fig.set_size_inches(8, int(num_not_none / 2))
+            plot_num = -1
+            for data_num, distribution in enumerate(data):
+                percent_done = 100 * ((data_num + 1) / len(data))
+                if distribution is None:
+                    continue
+                plot_num += 1
+                axes[plot_num].plot(distribution)
+                axes[plot_num].set_ylabel(file_names[data_num], rotation=0, labelpad=150)
+                axes[plot_num].set_yticklabels([])
+                axes[plot_num].get_xaxis().set_visible(False)
+                axes[plot_num].set_ylim([0, 20])
+                filled_length = int(80 * (percent_done / 100.0))
+                bar = "*" * filled_length + '-' * (80 - filled_length)
+                print(f"\r                  Progress : |{bar}| {percent_done}% - {file_names[data_num]}", end='')
+            print()
+            logger.log("Results processed, plot being set up now (may take some time!)")
+        else:
+            ax = plt.axes()
+            ax.plot(data_not_none[0])
         plt.savefig(output_file_file)

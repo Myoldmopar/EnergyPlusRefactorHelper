@@ -1,19 +1,20 @@
 from pathlib import Path
 from tempfile import mkstemp
 
-from error_refactor.source_file import SourceFile
-from error_refactor.error_call import ErrorCall  # , ErrorCallType
+from energyplus_refactor_helper.configs import ErrorCallStrings
+from energyplus_refactor_helper.source_file import SourceFile
+from energyplus_refactor_helper.function_call import FunctionCall  # , ErrorCallType
 
 
 class TestErrorCall:
     @staticmethod
-    def error_call_builder(raw_text: str) -> ErrorCall:
+    def error_call_builder(raw_text: str) -> FunctionCall:
         _, file_path = mkstemp()
         p = Path(file_path)
         p.write_text(raw_text)
-        sf = SourceFile(p)
-        sf.find_errors_in_original_text()
-        return sf.found_errors[0]
+        sf = SourceFile(p, ErrorCallStrings.all_calls())
+        sf.find_functions_in_original_text()
+        return sf.found_functions[0]
 
     def test_normal_single_line_error_call(self):
         ec = TestErrorCall.error_call_builder("ShowContinueError(state, \"Something happened\", DummyArgument);")

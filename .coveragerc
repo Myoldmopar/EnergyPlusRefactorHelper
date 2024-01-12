@@ -1,6 +1,6 @@
 [run]
-source = error_refactor
+source = energyplus_refactor_helper
 
 [report]
 omit =
-    */error_refactor/main.py
+    */energyplus_refactor_helper/main.py

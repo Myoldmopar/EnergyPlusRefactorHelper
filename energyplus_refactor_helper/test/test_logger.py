@@ -1,7 +1,7 @@
 from pathlib import Path
 from tempfile import mkstemp
 
-from error_refactor.logger import Logger
+from energyplus_refactor_helper.logger import Logger
 
 
 class TestLogger:

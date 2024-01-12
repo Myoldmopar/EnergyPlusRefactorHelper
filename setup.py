@@ -1,20 +1,40 @@
+from pathlib import Path
 from setuptools import setup
 
+from energyplus_refactor_helper import VERSION, PACKAGE_NAME
+readme_file = Path(__file__).parent.resolve() / 'README.md'
+readme_contents = readme_file.read_text()
+
 setup(
-    name="",
-    version="",
-    packages=[],
-    description="",
+    name=PACKAGE_NAME,
+    version=VERSION,
+    packages=[PACKAGE_NAME],
+    description="An EnergyPlus-specific set of tools that help analyze & refactor EnergyPlus code",
     package_data={},
     include_package_data=False,
-    long_description="",
-    long_description_content_type='',
-    author='',
-    url='',
-    license='',
+    long_description=readme_contents,
+    long_description_content_type='text/markdown',
+    author='Edwin Lee, for NREL, for the United States Department of Energy',
+    url='https://github.com/Myoldmopar/EnergyPlusRefactorHelper',
+    license='ModifiedBSD',
     install_requires=[],
     entry_points={'gui_scripts': [], 'console_scripts': []},
-    classifiers=[],
-    platforms=[],
-    keywords=[]
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Science/Research',
+        'Natural Language :: English',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 3 :: Only',
+        'Topic :: Scientific/Engineering',
+        'Topic :: Scientific/Engineering :: Physics',
+        'Topic :: Utilities',
+    ],
+    platforms=[
+        'Linux (Tested on Ubuntu)', 'MacOSX', 'Windows'
+    ],
+    keywords=[
+        'EnergyPlus', 'eplus', 'Energy+',
+        'Building Simulation', 'Whole Building Energy Simulation',
+        'Heat Transfer', 'HVAC', 'Modeling',
+    ]
 )

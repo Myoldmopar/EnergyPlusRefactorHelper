@@ -1,9 +1,11 @@
 from pathlib import Path
 from tempfile import mkstemp
 
-from energyplus_refactor_helper.configs import ErrorCallStrings
+from energyplus_refactor_helper.action import ErrorCallRefactor
 from energyplus_refactor_helper.source_file import SourceFile
 from energyplus_refactor_helper.function_call import FunctionCall  # , ErrorCallType
+
+funcs = ErrorCallRefactor().function_calls()  # just create a dummy instance here for convenience
 
 
 class TestErrorCall:
@@ -12,7 +14,7 @@ class TestErrorCall:
         _, file_path = mkstemp()
         p = Path(file_path)
         p.write_text(raw_text)
-        sf = SourceFile(p, ErrorCallStrings.all_calls())
+        sf = SourceFile(p, funcs)
         sf.find_functions_in_original_text()
         return sf.found_functions[0]
 
@@ -50,7 +52,7 @@ class TestErrorCall:
     def test_another_error_call(self):
         ec = TestErrorCall.error_call_builder("""ShowWarningError( // RecurringWarningErrorAtEnd(
                             state,
-                            format("{} \"{}\": FFHP evaporator DeltaTemp = 0 in mass flow calculation continues...",
+                            format("{} \"{}\": HP evaporator DeltaTemp = 0 in mass flow calculation continues...",
                                    DataPlant::PlantEquipTypeNames[static_cast<int>(this->EIRHPType)],
                                    this->name));""")
         args = ec.parse_arguments()

@@ -1,5 +1,3 @@
-from typing import List
-
 
 class FunctionCall:
     MAX_LINES_FOR_SINGLE_CALL = 13  # to detect/avoid parsing issues
@@ -23,26 +21,18 @@ class FunctionCall:
         self.char_end_in_file = end_character_index
         self.appears_successful = appears_successful
 
-    def as_single_line(self) -> str:
+    def as_cleaned_multiline(self) -> list[str]:
         skip_first_line_to_call_start = []
         for i, t in enumerate(self.multiline_text):
-            if i == 0:
-                skip_first_line_to_call_start.append(t[self.char_start_first_line:].strip())
-            else:
-                skip_first_line_to_call_start.append(t.strip())
-        return ''.join(skip_first_line_to_call_start).strip()
-
-    def trim_first_line(self) -> list[str]:
-        skip_first_line_to_call_start = []
-        for i, t in enumerate(self.multiline_text):
-            if i == 0:
-                skip_first_line_to_call_start.append(t[self.char_start_first_line:].strip())
-            else:
-                skip_first_line_to_call_start.append(t.strip())
+            this_line_content = t[self.char_start_first_line:].strip() if i == 0 else t.strip()
+            skip_first_line_to_call_start.append(this_line_content)
         return [x.strip() for x in skip_first_line_to_call_start]
 
-    def parse_arguments(self) -> List[str]:
-        one_string = '\n'.join(self.trim_first_line())
+    def as_single_line(self) -> str:
+        return ''.join(self.as_cleaned_multiline()).strip()
+
+    def parse_arguments(self) -> list[str]:
+        one_string = '\n'.join(self.as_cleaned_multiline())
         args = []
         current_arg = ""
         grouping_stack = []
@@ -81,7 +71,7 @@ class FunctionCall:
                         about_to_enter_string_literal = False
                     else:
                         grouping_stack.append(c)
-            # elif c == '\'':  # no apostrophe for c strings
+            # elif c == '\'':  # TODO: should we handle apostrophe for char as well?
             #     current_arg += c
             #     if grouping_stack[-1] == '\'':
             #         grouping_stack.pop()
@@ -117,15 +107,6 @@ class FunctionCall:
                 else:
                     current_arg += c
         return [a.strip() for a in args]
-
-    def preview(self):
-        ok = "LOOKS OK" if self.appears_successful else "PROBLEM"
-        lines = f"Lines {self.line_start:05d}:{self.line_end:05d}"
-        chars = f"Characters {self.char_start_in_file:08d}:{self.char_end_in_file:08d}"
-        modified = f"\"{self.as_single_line()}\""
-        arguments = self.parse_arguments()
-        args = f"({len(arguments)}) {arguments}"
-        return f"{ok} -- {lines} -- {chars} -- {modified} -- {args}\n"
 
     def __str__(self):
         return f"{self.line_start} - {self.line_end} : {self.as_single_line()[:35]}"

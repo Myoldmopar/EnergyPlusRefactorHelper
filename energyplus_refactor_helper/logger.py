@@ -18,6 +18,12 @@ class Logger:
             with self._file.open(mode='a') as file:
                 file.write(message)
 
+    @staticmethod
+    def terminal_progress_bar(current_num: int, total_num: int, suffix: str):
+        percent_done = round(100 * (current_num / total_num), 3)
+        filled_length = int(80 * (percent_done / 100.0))
+        bar = "*" * filled_length + '-' * (80 - filled_length)
+        print(f"\r                  Progress : |{bar}| {percent_done}% - {suffix}", end='')
 
-# create a default instance that just prints to stdout
-logger = Logger()
+
+logger = Logger()  # create a default instance to help with logging

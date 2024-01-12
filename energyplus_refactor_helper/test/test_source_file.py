@@ -1,20 +1,20 @@
 from pathlib import Path
 from tempfile import mkstemp
 
-from energyplus_refactor_helper.configs import ErrorCallStrings
+from energyplus_refactor_helper.action import ErrorCallRefactor
 from energyplus_refactor_helper.source_file import SourceFile
 
 this_file = Path(__file__).resolve()
 test_file = this_file.parent / 'fake_source_folder' / 'src' / 'EnergyPlus' / 'test_file.cc'
+funcs = ErrorCallRefactor().function_calls()  # just create a dummy instance here for convenience
 
 
 class TestSourceFile:
 
     def test_basic_operation(self):
-        sf = SourceFile(test_file, ErrorCallStrings.all_calls())
+        sf = SourceFile(test_file, funcs)
         sf.find_functions_in_original_text()
         assert len(sf.found_functions) == 9
-        assert sf.preview() is not None
 
     def test_complex_ish_file(self):
         _, file_path = mkstemp()
@@ -42,7 +42,7 @@ namespace UnitarySystems {
 }
 """
         p.write_text(raw_text)
-        sf = SourceFile(p, ErrorCallStrings.all_calls())
+        sf = SourceFile(p, funcs)
         sf.find_functions_in_original_text()
         assert len(sf.found_functions) == 2
         found_error = sf.found_functions[0]
@@ -66,13 +66,11 @@ void func() {
 }
 """
         p.write_text(raw_text)
-        sf = SourceFile(p, ErrorCallStrings.all_calls())
+        sf = SourceFile(p, funcs)
         sf.find_functions_in_original_text()
         assert len(sf.found_functions) == 3
-        error_call_info = sf.get_call_info_dict()
+        error_call_info = sf.group_and_summarize_function_calls()
         assert len(error_call_info) == 2
-        error_preview = sf.preview()
-        assert isinstance(error_preview, str)
 
     def test_error_after_text(self):
         _, file_path = mkstemp()
@@ -81,7 +79,7 @@ void func() {
           if (j > NumCur) ShowFatalError(state, "Out of range, too high (FAN) in ADS simulation");
         """
         p.write_text(raw_text)
-        sf = SourceFile(p, ErrorCallStrings.all_calls())
+        sf = SourceFile(p, funcs)
         sf.find_functions_in_original_text()
         assert len(sf.found_functions) == 1
         found_error = sf.found_functions[0]
@@ -112,18 +110,18 @@ void func() {
     );
         """
         p.write_text(raw_text)
-        sf = SourceFile(p, ErrorCallStrings.all_calls())
+        sf = SourceFile(p, funcs)
         sf.find_functions_in_original_text()
         found_error = sf.found_functions[0]
         assert not found_error.appears_successful
 
     def test_call_type_worker_function(self):
         message = "Something - ShowContinueError(blah,"
-        call, ind = SourceFile.get_call_type_and_starting_index_from_raw_line(ErrorCallStrings.all_calls(), message)
+        call, ind = SourceFile.type_and_start_index_from_raw_line(funcs, message)
         assert call == 3
         assert ind == 12
 
         message = "Nothing here!"
-        call, ind = SourceFile.get_call_type_and_starting_index_from_raw_line(ErrorCallStrings.all_calls(), message)
+        call, ind = SourceFile.type_and_start_index_from_raw_line(funcs, message)
         assert call is None
         assert ind == -1

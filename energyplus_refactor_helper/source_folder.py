@@ -43,7 +43,7 @@ class SourceFolder:
         for file_num, source_file in enumerate(sorted(self.matched_files)):
             self.processed_files.append(SourceFile(source_file, self.function_call_list))
             logger.terminal_progress_bar(file_num + 1, len(self.matched_files), source_file.name)
-        logger.terminal_progress_bar(1, 1, '\n')
+        logger.terminal_progress_done()
         logger.log("Finished Processing, ready to generate results")
 
     def fixup_files_in_place(self):
@@ -63,7 +63,7 @@ class SourceFolder:
         for file_num, source_file in enumerate(self.processed_files):
             full_json_content[source_file.path.name] = source_file.group_and_summarize_function_calls()
             logger.terminal_progress_bar(file_num + 1, len(self.processed_files), source_file.path.name)
-        logger.terminal_progress_bar(1, 1, '\n')
+        logger.terminal_progress_done()
         output_json_file.write_text(dumps(full_json_content, indent=2))
         logger.log("Finished Building JSON outputs")
 
@@ -82,6 +82,7 @@ class SourceFolder:
         output_csv_file.write_text(csv_string)
 
     def generate_line_details_plot(self, output_file_file: Path) -> None:
+        y_max = len(self.function_call_list)
         file_names = [x.path.name for x in self.processed_files]
         data = [x.advanced_function_distribution for x in self.processed_files]
         num_data_sets = len(data)
@@ -94,8 +95,8 @@ class SourceFolder:
             axes[plot_num].set_ylabel(file_names[data_num], rotation=0, labelpad=150)
             axes[plot_num].set_yticklabels([])
             axes[plot_num].get_xaxis().set_visible(False)
-            axes[plot_num].set_ylim([0, 20])
+            axes[plot_num].set_ylim([0, y_max])
             logger.terminal_progress_bar(data_num + 1, len(data), '')
-        logger.terminal_progress_bar(1, 1, '\n')
+        logger.terminal_progress_done()
         logger.log("Results processed, plot being set up now (may take some time!)")
         plt.savefig(output_file_file)

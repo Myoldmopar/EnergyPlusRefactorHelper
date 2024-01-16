@@ -59,11 +59,11 @@ class SourceFile:
                 reset = False
                 if len(call.multiline_text) > FunctionCall.MAX_LINES_FOR_SINGLE_CALL:
                     character_end_index = call.char_start_in_file + len(raw_line)
-                    call.complete(line_number, character_end_index, False)
+                    call.finalize(line_number, character_end_index, False)
                     reset = True
                 elif cleaned_line.strip().endswith(';'):
                     character_end_index = raw_line_start_char_index + raw_line.rfind(';')
-                    call.complete(line_number, character_end_index, True)
+                    call.finalize(line_number, character_end_index, True)
                     reset = True
                 if reset:
                     found_errors.append(call)
@@ -78,7 +78,7 @@ class SourceFile:
                     )
                     if cleaned_line.strip().endswith(';'):
                         character_end_index = raw_line_start_char_index + raw_line.rfind(';')
-                        call.complete(line_number, character_end_index, True)
+                        call.finalize(line_number, character_end_index, True)
                         found_errors.append(call)
                         call = None
                     else:
@@ -96,7 +96,7 @@ class SourceFile:
         """
         lines_with_functions = []
         for fe in self.found_functions:
-            for line_num in range(fe.line_start - 1, fe.line_end):
+            for line_num in range(fe.start_index_in_first_line - 1, fe.ending_line_number):
                 if line_num not in lines_with_functions:
                     lines_with_functions.append(line_num)
         return [1 if x + 1 in lines_with_functions else 0 for x in range(len(self.file_lines))]
@@ -111,7 +111,7 @@ class SourceFile:
         """
         line_values = [0] * len(self.file_lines)
         for fe in self.found_functions:
-            for line_num in range(fe.line_start - 1, fe.line_end):
+            for line_num in range(fe.start_index_in_first_line - 1, fe.ending_line_number):
                 line_values[line_num] = max(line_values[line_num], fe.call_type)
         return line_values
 
@@ -160,9 +160,10 @@ class SourceFile:
         last_call_index = len(self.found_functions) - 1
         for i, fe in enumerate(self.found_functions):
             this_single_call = {
-                'type': fe.call_type, 'line_start': fe.line_start, 'line_end': fe.line_end, 'args': fe.parse_arguments()
+                'type': fe.call_type, 'line_start': fe.start_index_in_first_line,
+                'line_end': fe.ending_line_number, 'args': fe.parse_arguments()
             }
-            if fe.line_start == last_call_ended_on_line_number + 1:
+            if fe.start_index_in_first_line == last_call_ended_on_line_number + 1:
                 latest_chunk.append(this_single_call)
                 if i == last_call_index:
                     summary = self.create_function_call_chunk_summary(latest_chunk)
@@ -175,5 +176,5 @@ class SourceFile:
                 if i == last_call_index:  # this is the last error, add it to the list before leaving
                     summary = self.create_function_call_chunk_summary(latest_chunk)
                     all_args_for_file.append({'summary': summary, 'original': latest_chunk})
-            last_call_ended_on_line_number = fe.line_end
+            last_call_ended_on_line_number = fe.ending_line_number
         return all_args_for_file

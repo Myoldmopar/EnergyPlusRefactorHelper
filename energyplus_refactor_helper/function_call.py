@@ -1,23 +1,24 @@
+from energyplus_refactor_helper.logger import logger
+
 
 class FunctionCall:
     MAX_LINES_FOR_SINGLE_CALL = 13  # to detect/avoid parsing issues
 
-    def __init__(self, call_type: int, line_start: int, char_start_in_file: int, char_start_first_line: int,
-                 first_line_raw_text: str):
-        self.call_type = call_type
-        self.multiline_text = [first_line_raw_text]
-        self.line_start = line_start
-        self.char_start_in_file = char_start_in_file
-        self.char_start_first_line = char_start_first_line
-        self.line_end: int = -1
+    def __init__(self, call: int, line_start: int, file_start_index: int, line_start_index: int, first_line_text: str):
+        self.call_type = call
+        self.multiline_text = [first_line_text]
+        self.start_index_in_first_line = line_start
+        self.char_start_in_file = file_start_index
+        self.char_start_first_line = line_start_index
+        self.ending_line_number: int = -1
         self.char_end_in_file = -1
         self.appears_successful = True
 
     def add_to_multiline_text(self, line_content: str) -> None:
         self.multiline_text.append(line_content)
 
-    def complete(self, line_number: int, end_character_index: int, appears_successful: bool) -> None:
-        self.line_end = line_number
+    def finalize(self, line_number: int, end_character_index: int, appears_successful: bool) -> None:
+        self.ending_line_number = line_number
         self.char_end_in_file = end_character_index
         self.appears_successful = appears_successful
 
@@ -47,8 +48,7 @@ class FunctionCall:
                 if c == '(':
                     grouping_stack.append('(')
                     reached_args = True
-                continue
-            if reading_comment_until_new_line:
+            elif reading_comment_until_new_line:
                 if c == '\n':
                     reading_comment_until_new_line = False
             elif inside_raw_literal:
@@ -71,12 +71,6 @@ class FunctionCall:
                         about_to_enter_string_literal = False
                     else:
                         grouping_stack.append(c)
-            # elif c == '\'':  # TODO: should we handle apostrophe for char as well?
-            #     current_arg += c
-            #     if grouping_stack[-1] == '\'':
-            #         grouping_stack.pop()
-            #     else:
-            #         grouping_stack.append(c)
             elif inside_literal:
                 current_arg += c
             elif c == '(':
@@ -86,7 +80,7 @@ class FunctionCall:
                 if grouping_stack[-1] == '(':
                     grouping_stack.pop()
                 else:  # pragma: no cover
-                    print("UNBALANCED PARENTHESES!")
+                    logger.log("UNBALANCED PARENTHESES; PROBABLY PARSER PROBLEM!")
                     return []  # this really should not happen
                 if len(grouping_stack) == 0:  # reached the end
                     args.append(current_arg)
@@ -95,18 +89,17 @@ class FunctionCall:
             elif c == ',' and len(grouping_stack) == 1:
                 args.append(current_arg)
                 current_arg = ''
+            elif c == 'R' and one_string[i+1] == '"' and one_string[i+2] == '(':
+                # it appears we are about to enter a raw literal
+                about_to_enter_string_literal = True
+                current_arg += c
+            elif c == '/' and one_string[i+1] == '/':
+                reading_comment_until_new_line = True
+            elif c == '\n':
+                continue  # just eat the newline
             else:
-                if c == 'R' and one_string[i+1] == '"' and one_string[i+2] == '(':
-                    # it appears we are about to enter a raw literal
-                    about_to_enter_string_literal = True
-                    current_arg += c
-                elif c == '/' and one_string[i+1] == '/':
-                    reading_comment_until_new_line = True
-                elif c == '\n':
-                    continue  # just eat the newline
-                else:
-                    current_arg += c
+                current_arg += c
         return [a.strip() for a in args]
 
     def __str__(self):
-        return f"{self.line_start} - {self.line_end} : {self.as_single_line()[:35]}"
+        return f"{self.start_index_in_first_line} - {self.ending_line_number} : {self.as_single_line()[:35]}"

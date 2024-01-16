@@ -30,4 +30,4 @@ class Logger:
         Logger.terminal_progress_bar(1, 1, 'Finished\n')
 
 
-logger = Logger()  # create a default instance to help with logging
+logger = Logger()  # create a default instance to help with logging, use a custom instance if desired

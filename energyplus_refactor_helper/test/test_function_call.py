@@ -29,6 +29,11 @@ class TestErrorCall:
         args = ec.parse_arguments()
         assert len(args) == 2
 
+    def test_error_call_with_apostrophe_char_arg(self):
+        ec = TestErrorCall.error_call_builder('ShowContinueError(state, \'x\');')
+        args = ec.parse_arguments()
+        assert len(args) == 2
+
     def test_error_call_with_complex_escapes(self):
         ec = TestErrorCall.error_call_builder(
             """ShowSevereMessage(state, format("{} \"{}\":",

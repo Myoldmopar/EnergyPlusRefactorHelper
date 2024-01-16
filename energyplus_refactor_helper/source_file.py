@@ -160,7 +160,8 @@ class SourceFile:
         last_call_index = len(self.found_functions) - 1
         for i, fe in enumerate(self.found_functions):
             this_single_call = {
-                'type': fe.call_type, 'line_start': fe.start_index_in_first_line, 'line_end': fe.ending_line_number, 'args': fe.parse_arguments()
+                'type': fe.call_type, 'line_start': fe.start_index_in_first_line,
+                'line_end': fe.ending_line_number, 'args': fe.parse_arguments()
             }
             if fe.start_index_in_first_line == last_call_ended_on_line_number + 1:
                 latest_chunk.append(this_single_call)

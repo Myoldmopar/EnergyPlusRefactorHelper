@@ -25,5 +25,9 @@ class Logger:
         bar = "*" * filled_length + '-' * (80 - filled_length)
         print(f"\r                  Progress : |{bar}| {percent_done}% - {suffix}", end='')
 
+    @staticmethod
+    def terminal_progress_done():
+        Logger.terminal_progress_bar(1, 1, 'Finished\n')
+
 
 logger = Logger()  # create a default instance to help with logging

@@ -17,8 +17,10 @@ setup(
     author='Edwin Lee, for NREL, for the United States Department of Energy',
     url='https://github.com/Myoldmopar/EnergyPlusRefactorHelper',
     license='ModifiedBSD',
-    install_requires=[],
-    entry_points={'gui_scripts': [], 'console_scripts': []},
+    install_requires=['matplotlib'],
+    entry_points={
+        'gui_scripts': [],
+        'console_scripts': ['energyplus_refactor=energyplus_refactor_helper.main:run_cli']},
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',

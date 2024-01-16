@@ -3,3 +3,5 @@ coveralls
 flake8
 matplotlib
 pytest
+sphinx
+wheel

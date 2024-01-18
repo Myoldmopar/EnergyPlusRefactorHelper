@@ -6,6 +6,8 @@
 Welcome to EnergyPlus Refactor Helper's documentation!
 ======================================================
 
+This is a small package to help inspect code, and prepare and apply changes to the EnergyPlus codebase.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:

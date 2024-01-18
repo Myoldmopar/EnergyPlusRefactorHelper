@@ -13,10 +13,10 @@ It will almost certainly fail on any other codebase, because it is based (curren
 Code is tested pretty heavily, and is always trying to hit 100% coverage.
 
 ## Documentation
-Docs are being stubbed out in Sphinx, and will be expanded as possible.
+[![Documentation Status](https://readthedocs.org/projects/energyplusrefactorhelper/badge/?version=latest)](https://energyplusrefactorhelper.readthedocs.io/en/latest/?badge=latest)
+
+Docs are written in Sphinx and our main branch is built on ReadTheDocs.
 
 # TODO
-- Get Coveralls going again
-- Get docs fleshed out and RTD working
-- Demonstrate the package in-action
+- Move actions to a demos folder maybe?
 - Deploy on PyPi

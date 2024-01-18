@@ -10,7 +10,12 @@ Welcome to EnergyPlus Refactor Helper's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   action
+   function_call
+   logger
+   main
+   source_file
+   source_folder
 
 Indices and tables
 ==================

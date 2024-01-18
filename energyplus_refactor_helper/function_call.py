@@ -2,27 +2,66 @@ from energyplus_refactor_helper.logger import logger
 
 
 class FunctionCall:
+
     MAX_LINES_FOR_SINGLE_CALL = 13  # to detect/avoid parsing issues
 
     def __init__(self, call: int, line_start: int, file_start_index: int, line_start_index: int, first_line_text: str):
+        """
+        This class represents a single function call in the EnergyPlus source code.
+        The parsing algorithms here rely on specific EnergyPlus source code style/structure assumptions, and are surely
+        not applicable to generic codebases.  In the future, a more formal C++ parser may be added.
+
+        To construct a function call, you provide the first line of code containing the function call,
+        as well position details, then continue adding lines of text holding the function call, and then finalize the
+        function call when the end is reached.  The function call can then be parsed into arguments using methods here.
+
+        :param call: This represents an integer call type, which is essentially the index of the function in the
+                     derived :meth:`RefactorBase.function_calls()` method.
+        :param line_start: This is the 1-based line number where this function call starts in the file.
+        :param file_start_index: This is the character index in the raw file text where the function call starts.
+        :param line_start_index: This is the character index in the first line of the function call where the
+                                 call starts
+        :param first_line_text: This is the raw first line text where the function call starts.
+        """
         self.call_type = call
         self.multiline_text = [first_line_text]
-        self.start_index_in_first_line = line_start
+        self.starting_line_number = line_start
+        self.ending_line_number = line_start  # initialize here
         self.char_start_in_file = file_start_index
         self.char_start_first_line = line_start_index
-        self.ending_line_number: int = -1
         self.char_end_in_file = -1
         self.appears_successful = True
 
     def add_to_multiline_text(self, line_content: str) -> None:
+        """
+        After construction of a function call, add continuing lines to the function call by calling this method.
+
+        :param line_content: Add continuation lines of a multi-line function call using this method.
+        :return: None
+        """
+        self.ending_line_number += 1
         self.multiline_text.append(line_content)
 
-    def finalize(self, line_number: int, end_character_index: int, appears_successful: bool) -> None:
-        self.ending_line_number = line_number
+    def finalize(self, end_character_index: int, appears_successful: bool) -> None:
+        """
+        Once a function call reaches the end, call this method to "finalize" the structure.  This function accepts a
+        flag to indicate if the function call parsing appeared successful.  This is useful when a function call extends
+        too many lines, implying a parsing problem.
+
+        :param end_character_index: The character index of the final line of the function call where the call ends
+        :param appears_successful: A true/false flag for whether the parse "appears" successful.
+        :return: None
+        """
         self.char_end_in_file = end_character_index
         self.appears_successful = appears_successful
 
     def as_cleaned_multiline(self) -> list[str]:
+        """
+        After a function call has been finalized, this function provides the function call formatted as a sanitized
+        multiline list of strings.
+
+        :return: A list of strings represented sanitized lines of the function call.
+        """
         skip_first_line_to_call_start = []
         for i, t in enumerate(self.multiline_text):
             this_line_content = t[self.char_start_first_line:].strip() if i == 0 else t.strip()
@@ -30,9 +69,21 @@ class FunctionCall:
         return [x.strip() for x in skip_first_line_to_call_start]
 
     def as_single_line(self) -> str:
+        """
+        After a function call has been finalized, this function provides the function call formatted as a single line.
+
+        :return: A single string representation of the function call.
+        """
         return ''.join(self.as_cleaned_multiline()).strip()
 
     def parse_arguments(self) -> list[str]:
+        """
+        After a function call has been finalized, this method can be used to parse the arguments of the call into a
+        list of strings.  This parsing takes advantage of some assumptions about the way EnergyPlus enforces code style
+        and structure.  (Such as no C++ style /\* blah \*/ comments allowed, etc.)
+
+        :return: A list of string arguments to the function call.
+        """
         one_string = '\n'.join(self.as_cleaned_multiline())
         args = []
         current_arg = ""
@@ -102,4 +153,5 @@ class FunctionCall:
         return [a.strip() for a in args]
 
     def __str__(self):
-        return f"{self.start_index_in_first_line} - {self.ending_line_number} : {self.as_single_line()[:35]}"
+        """String representation summary of the function call"""
+        return f"{self.starting_line_number} - {self.ending_line_number} : {self.as_single_line()[:35]}"

@@ -131,18 +131,26 @@ class SourceFile:
         self.file_text_fixed_up()
 
     @staticmethod
-    def create_function_call_chunk_summary(error_chunk: list[dict]) -> dict:
+    def create_function_call_chunk_summary(call_group: list[dict]) -> dict:
+        """
+        THis function creates a dict summary of a chunk of contiguous function calls.  It is expected this function will
+        change to returning a nice structure instead of a loosely defined dictionary.
+
+        :param call_group: A list of dictionaries where each item is a single function call dict.  It is expected that
+                           this argument will change to a list of structs eventually.
+        :return: A single dictionary summary.
+        """
         # TODO: Change this to return a struct, not a dict
-        num_calls_in_this_chunk = len(error_chunk)
-        call_types = [e['type'] for e in error_chunk]
+        num_calls_in_this_chunk = len(call_group)
+        call_types = [e['type'] for e in call_group]
         cleaned_call_types = [i[0] for i in groupby(call_types)]  # remove duplicates
-        chunk_start_line = error_chunk[0]['line_start']
-        chunk_end_line = error_chunk[-1]['line_end']
+        chunk_start_line = call_group[0]['line_start']
+        chunk_end_line = call_group[-1]['line_end']
         try:
-            concatenated_messages = ' *** '.join([e['args'][1] for e in error_chunk])
+            concatenated_messages = ' *** '.join([e['args'][1] for e in call_group])
         except IndexError:  # pragma: no cover
             # this is almost certainly indicative of a parser problem, so we can't cover it
-            raise Exception(f"Something went wrong with the arg processing for this chunk! {error_chunk}")
+            raise Exception(f"Something went wrong with the arg processing for this chunk! {call_group}")
         return {
             'num_calls_in_this_chunk': num_calls_in_this_chunk,
             'call_types': call_types,
@@ -153,6 +161,13 @@ class SourceFile:
         }
 
     def group_and_summarize_function_calls(self) -> list[dict]:
+        """
+        This function loops over all found function calls in this file, groups them together into contiguous chunks,
+        and results in a list summary of all the function calls.
+
+        :return: A list of dicts containing full function call info for this file.  It is expected that this will
+                 eventually be converted over to return a list of structs instead of a list of dicts.
+        """
         # TODO: Change this to return a struct, not a dict
         all_args_for_file = []
         last_call_ended_on_line_number = -1

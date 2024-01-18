@@ -133,7 +133,7 @@ class SourceFile:
     @staticmethod
     def create_function_call_chunk_summary(call_group: list[dict]) -> dict:
         """
-        THis function creates a dict summary of a chunk of contiguous function calls.  It is expected this function will
+        This function creates a dict summary of a chunk of contiguous function calls.  It is expected this function will
         change to returning a nice structure instead of a loosely defined dictionary.
 
         :param call_group: A list of dictionaries where each item is a single function call dict.  It is expected that

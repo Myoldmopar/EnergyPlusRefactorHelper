@@ -80,7 +80,7 @@ class FunctionCall:
         """
         After a function call has been finalized, this method can be used to parse the arguments of the call into a
         list of strings.  This parsing takes advantage of some assumptions about the way EnergyPlus enforces code style
-        and structure.  (Such as no C++ style /\* blah \*/ comments allowed, etc.)
+        and structure.  (Such as no C++ style comments allowed, etc.)
 
         :return: A list of string arguments to the function call.
         """

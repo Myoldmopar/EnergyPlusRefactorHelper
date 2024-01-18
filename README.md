@@ -8,6 +8,7 @@ It will almost certainly fail on any other codebase, because it is based (curren
 ## Testing
 [![Flake8](https://github.com/Myoldmopar/EnergyPlusRefactorHelper/actions/workflows/flake8.yml/badge.svg)](https://github.com/Myoldmopar/EnergyPlusRefactorHelper/actions/workflows/flake8.yml)
 [![Run Tests](https://github.com/Myoldmopar/EnergyPlusRefactorHelper/actions/workflows/test.yml/badge.svg)](https://github.com/Myoldmopar/EnergyPlusRefactorHelper/actions/workflows/test.yml)
+[![Coverage Status](https://coveralls.io/repos/github/Myoldmopar/EnergyPlusRefactorHelper/badge.svg?branch=PackageUpdates)](https://coveralls.io/github/Myoldmopar/EnergyPlusRefactorHelper?branch=PackageUpdates)
 
 Code is tested pretty heavily, and is always trying to hit 100% coverage.
 

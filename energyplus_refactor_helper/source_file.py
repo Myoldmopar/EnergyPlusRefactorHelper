@@ -30,9 +30,10 @@ class SourceFile:
         :param full_raw_line: A full line from the rwa source code, to be searched.
         :return: A tuple, where the first item is an optional found error call type int, and the second is the index.
         """
-        for f_index, f in enumerate(functions):
-            if f in full_raw_line:
-                return f_index, full_raw_line.index(f)
+        for func_index, func in enumerate(functions):
+            func_call = f"{func}("
+            if func_call in full_raw_line:
+                return func_index, full_raw_line.index(func)
         return None, -1
 
     def find_functions_in_original_text(self) -> list[FunctionCall]:
@@ -47,7 +48,7 @@ class SourceFile:
         parsing_multiline = False
         raw_line_start_char_index = 0
         raw_line_end_char_index = -1
-        found_errors = []
+        found_functions = []
         while line_number <= len(self.file_lines):
             raw_line = self.file_lines[line_number - 1]
             raw_line_end_char_index += len(raw_line) + 1  # includes the \n at the end of the line
@@ -66,26 +67,27 @@ class SourceFile:
                     call.finalize(character_end_index, True)
                     reset = True
                 if reset:
-                    found_errors.append(call)
+                    found_functions.append(call)
                     call = None
                     parsing_multiline = False
             else:
                 if any([f"{x}(" in cleaned_line for x in self.functions]):
                     call_type, call_index_in_line = self.type_and_start_index_from_raw_line(self.functions, raw_line)
+                    function_name = self.functions[call_type]
                     character_start_index = raw_line_start_char_index + call_index_in_line
                     call = FunctionCall(
-                        call_type, line_number, character_start_index, call_index_in_line, raw_line
+                        call_type, function_name, line_number, character_start_index, call_index_in_line, raw_line
                     )
                     if cleaned_line.strip().endswith(';'):
                         character_end_index = raw_line_start_char_index + raw_line.rfind(';')
                         call.finalize(character_end_index, True)
-                        found_errors.append(call)
+                        found_functions.append(call)
                         call = None
                     else:
                         parsing_multiline = True
             raw_line_start_char_index = raw_line_end_char_index + 1
             line_number += 1
-        return found_errors
+        return found_functions
 
     def get_function_distribution(self) -> list[int]:
         """
@@ -123,12 +125,12 @@ class SourceFile:
         """
         new_text = self.original_file_text
         for fe in reversed(self.found_functions):
-            new_text = new_text[:fe.char_start_in_file] + fe.as_single_line() + new_text[fe.char_end_in_file + 1:]
+            new_text = new_text[:fe.char_start_in_file] + fe.as_new_version() + new_text[fe.char_end_in_file + 1:]
         return new_text
 
     def fixup_file_in_place(self) -> None:
         # open the file, rewrite with new text
-        self.file_text_fixed_up()
+        self.path.write_text(self.file_text_fixed_up())
 
     @staticmethod
     def create_function_call_chunk_summary(call_group: list[dict]) -> dict:

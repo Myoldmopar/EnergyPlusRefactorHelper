@@ -63,6 +63,30 @@ class TestErrorCall:
         args = ec.parse_arguments()
         assert len(args) == 2
 
+    def test_trailing_comment_error_call(self):
+        ec = TestErrorCall.error_call_builder("""ShowSevereError(state,
+                        "Standard Ratings: Coil:Cooling:DX " + this->name + // TODO: Use dynamic COIL name later
+                            " has zero rated total cooling capacity. Standard ratings cannot be calculated.");""")
+
+        args = ec.parse_arguments()
+        assert len(args) == 2
+
+    def test_arg_with_apostrophe_char_literal(self):
+        ec = TestErrorCall.error_call_builder("""ShowContinueError(s, "(" + c + ')');""")
+        args = ec.parse_arguments()
+        assert len(args) == 2
+
+    def test_another_weird_apostrophe(self):
+        ec = TestErrorCall.error_call_builder("""ShowSevereError(s, "='" + a + "' invalid " + name + "='" + arr);""")
+        args = ec.parse_arguments()
+        assert len(args) == 2
+
+    def test_more_embedded_apostrophes(self):
+        ec = TestErrorCall.error_call_builder("""ShowContinueError(s, "comp='{}', type='{}', key='{}'.");""")
+        args = ec.parse_arguments()
+        assert len(args) == 2
+        assert args[1] == "\"comp='{}', type='{}', key='{}'.\""
+
     def test_raw_literal_error_call(self):
         ec = TestErrorCall.error_call_builder("""ShowContinueError(state, R"(Extra "Argument" (right) Here)");""")
         args = ec.parse_arguments()

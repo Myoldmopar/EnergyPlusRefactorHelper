@@ -110,8 +110,7 @@ class SourceFolder:
         logger.log("Building JSON summary output")
         full_json_content = {}
         for file_num, source_file in enumerate(self.processed_files):
-            groups_in_file = source_file.get_function_call_groups()
-            full_json_content[source_file.path.name] = [g.summary() for g in groups_in_file]
+            full_json_content[source_file.path.name] = [g.to_json() for g in source_file.get_function_call_groups()]
             logger.terminal_progress_bar(file_num + 1, len(self.processed_files), source_file.path.name)
         logger.terminal_progress_done()
         output_json_file.write_text(dumps(full_json_content, indent=2))

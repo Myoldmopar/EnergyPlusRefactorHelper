@@ -16,9 +16,9 @@ class FunctionCall:
         function call when the end is reached.  The function call can then be parsed into arguments using methods here.
 
         :param call: This represents an integer call type, which is essentially the index of the function in the
-                     derived :meth:`RefactorBase.function_calls()` method.
+                     derived :meth:`energyplus_refactor_helper.action.RefactorBase.function_calls()` method.
         :param func_name: This is the function name for this function call as defined in the
-                          :meth:`RefactorBase.function_calls()` method.
+                          :meth:`energyplus_refactor_helper.action.RefactorBase.function_calls()` method.
         :param line_start: This is the 1-based line number where this function call starts in the file.
         :param file_start_index: This is the character index in the raw file text where the function call starts.
         :param line_start_index: This is the character index in the first line of the function call where the

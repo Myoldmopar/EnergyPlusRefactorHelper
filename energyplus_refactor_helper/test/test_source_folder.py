@@ -1,3 +1,5 @@
+from shutil import copytree
+import tempfile
 from pathlib import Path
 from tempfile import mkdtemp
 
@@ -47,11 +49,13 @@ class TestSourceFolder:
         assert len(output_files_found) > 0
 
     def test_edit_in_place_workflow(self):
-        # TODO: Set up a temporary source directory to operate on
-        fake_source_folder, dummy_output_folder = TestSourceFolder.set_up_dirs()
+        new_scratch_dir = Path(tempfile.mkdtemp())
+        test_source_dir, dummy_output_folder = TestSourceFolder.set_up_dirs()
+        copytree(test_source_dir, new_scratch_dir)
         sf = SourceFolder(
-            fake_source_folder, dummy_output_folder, ['file_to_ignore.cc'], funcs, True
+            new_scratch_dir, dummy_output_folder, ['file_to_ignore.cc'], funcs, True
         )
         assert sf.success
         output_files_found = list(dummy_output_folder.glob('*'))
         assert len(output_files_found) > 0
+        # TODO: Check contents of modified source tree in new_scratch_dir

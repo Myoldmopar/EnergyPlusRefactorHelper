@@ -49,7 +49,7 @@ class TestSourceFolder:
         assert len(output_files_found) > 0
 
     def test_edit_in_place_workflow(self):
-        new_scratch_dir = Path(tempfile.mkdtemp())
+        new_scratch_dir = Path(tempfile.mkdtemp()) / 'new_scratch_dir'
         test_source_dir, dummy_output_folder = TestSourceFolder.set_up_dirs()
         copytree(test_source_dir, new_scratch_dir)
         sf = SourceFolder(

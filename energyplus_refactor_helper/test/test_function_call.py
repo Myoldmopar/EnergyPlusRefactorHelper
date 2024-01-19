@@ -4,6 +4,9 @@ from energyplus_refactor_helper.function_call import FunctionCall
 class TestErrorCall:
     @staticmethod
     def helper(full_text: str, function_name: str = "") -> FunctionCall:
+        if function_name == "":
+            first_open_parenthesis = full_text.find("(")
+            function_name = full_text[:first_open_parenthesis]
         f = FunctionCall(0, function_name, 1, 0, 0, full_text)
         f.finalize(len(full_text), True)
         return f

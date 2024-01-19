@@ -87,14 +87,6 @@ class FunctionCall:
         args = ', '.join(self.parse_arguments())
         return f"{self.function_name}({args});"
 
-    def as_single_line(self) -> str:
-        """
-        After a function call has been finalized, this function provides the function call formatted as a single line.
-
-        :return: A single string representation of the function call.
-        """
-        return ''.join(self.as_cleaned_multiline()).strip()
-
     def parse_arguments(self) -> list[str]:
         """
         After a function call has been finalized, this method can be used to parse the arguments of the call into a
@@ -180,6 +172,13 @@ class FunctionCall:
                 current_arg += c
         return [a.strip() for a in args]
 
+    def summary(self) -> dict:
+        return {
+            'type': self.call_type, 'line_start': self.starting_line_number,
+            'line_end': self.ending_line_number, 'args': self.parse_arguments()
+        }
+
     def __str__(self):
         """String representation summary of the function call"""
-        return f"{self.starting_line_number} - {self.ending_line_number} : {self.as_single_line()[:35]}"
+        single_line = ''.join(self.as_cleaned_multiline()).strip()
+        return f"{self.starting_line_number} - {self.ending_line_number} : {single_line[:35]}"

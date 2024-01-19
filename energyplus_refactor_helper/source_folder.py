@@ -76,7 +76,7 @@ class SourceFolder:
         logger.log("Now fixing up files in place with new function calls")
         num_files = len(self.processed_files)
         for file_num, s in enumerate(self.processed_files):
-            s.fixup_file_in_place()  # rewrite the file contents
+            s.write_new_text_to_file()  # rewrite the file contents
             logger.terminal_progress_bar(file_num + 1, num_files, s.path.name)
         logger.terminal_progress_done()
 
@@ -110,7 +110,8 @@ class SourceFolder:
         logger.log("Building JSON summary output")
         full_json_content = {}
         for file_num, source_file in enumerate(self.processed_files):
-            full_json_content[source_file.path.name] = source_file.group_and_summarize_function_calls()
+            groups_in_file = source_file.get_function_call_groups()
+            full_json_content[source_file.path.name] = [g.summary() for g in groups_in_file]
             logger.terminal_progress_bar(file_num + 1, len(self.processed_files), source_file.path.name)
         logger.terminal_progress_done()
         output_json_file.write_text(dumps(full_json_content, indent=2))

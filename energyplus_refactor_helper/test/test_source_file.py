@@ -69,7 +69,7 @@ void func() {
         sf = SourceFile(p, funcs)
         sf.find_functions_in_original_text()
         assert len(sf.found_functions) == 3
-        error_call_info = sf.group_and_summarize_function_calls()
+        error_call_info = sf.get_function_call_groups()
         assert len(error_call_info) == 2
 
     def test_error_after_text(self):
@@ -117,11 +117,11 @@ void func() {
 
     def test_call_type_worker_function(self):
         message = "Something - ShowContinueError(blah,"
-        call, ind = SourceFile.type_and_start_index_from_raw_line(funcs, message)
+        call, ind = SourceFile.find_function_in_raw_line(funcs, message)
         assert call == 3
         assert ind == 12
 
         message = "Nothing here!"
-        call, ind = SourceFile.type_and_start_index_from_raw_line(funcs, message)
+        call, ind = SourceFile.find_function_in_raw_line(funcs, message)
         assert call is None
         assert ind == -1

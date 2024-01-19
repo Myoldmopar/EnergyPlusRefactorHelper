@@ -4,3 +4,4 @@ source = energyplus_refactor_helper
 [report]
 omit =
     */energyplus_refactor_helper/main.py
+    */energyplus_refactor_helper/__main__.py

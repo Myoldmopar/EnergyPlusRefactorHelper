@@ -1,10 +1,12 @@
+from shutil import copytree
+import tempfile
 from pathlib import Path
 from tempfile import mkdtemp
 
 from energyplus_refactor_helper.action import ErrorCallRefactor
 from energyplus_refactor_helper.source_folder import SourceFolder
 
-funcs = ErrorCallRefactor().function_calls()  # just create a dummy instance here for convenience
+funcs = ErrorCallRefactor().function_calls()  # TODO: Use a custom dummy list here, not a real demo
 
 
 class TestSourceFolder:
@@ -22,36 +24,33 @@ class TestSourceFolder:
 
     def test_it_finds_matching_files_including_ignored(self):
         fake_source_folder, dummy_output_folder = TestSourceFolder.set_up_dirs()
-        sf = SourceFolder(
-            fake_source_folder, dummy_output_folder, ['file_to_ignore.cc'], funcs, False
-        )
+        sf = SourceFolder(fake_source_folder, dummy_output_folder, ['file_to_ignore.cc'], funcs, False)
         assert len(sf.matched_files) == 3
 
     def test_full_workflow(self):
         fake_source_folder, dummy_output_folder = TestSourceFolder.set_up_dirs()
-        sf = SourceFolder(
-            fake_source_folder, dummy_output_folder, ['file_to_ignore.cc'], funcs, False
-        )
+        sf = SourceFolder(fake_source_folder, dummy_output_folder, ['file_to_ignore.cc'], funcs, False)
         assert sf.success
         output_files_found = list(dummy_output_folder.glob('*'))
         assert len(output_files_found) > 0
 
     def test_it_creates_output_folder_if_not_exists(self):
-        fake_source_folder, dummy_output_folder = TestSourceFolder.set_up_dirs()
+        src_folder, dummy_output_folder = TestSourceFolder.set_up_dirs()
         nonexistent_dummy_output_folder = dummy_output_folder / 'dummy'
-        sf = SourceFolder(
-            fake_source_folder, nonexistent_dummy_output_folder, ['file_to_ignore.cc'], funcs, False
-        )
+        sf = SourceFolder(src_folder, nonexistent_dummy_output_folder, ['file_to_ignore.cc'], funcs, False)
         assert sf.success
         output_files_found = list(nonexistent_dummy_output_folder.glob('*'))
         assert len(output_files_found) > 0
 
     def test_edit_in_place_workflow(self):
-        # TODO: Set up a temporary source directory to operate on
-        fake_source_folder, dummy_output_folder = TestSourceFolder.set_up_dirs()
-        sf = SourceFolder(
-            fake_source_folder, dummy_output_folder, ['file_to_ignore.cc'], funcs, True
-        )
+        new_scratch_dir = Path(tempfile.mkdtemp()) / 'new_scratch_dir'
+        test_source_dir, dummy_output_folder = TestSourceFolder.set_up_dirs()
+        copytree(test_source_dir, new_scratch_dir)
+        sf = SourceFolder(new_scratch_dir, dummy_output_folder, ['file_to_ignore.cc'], funcs, True)
         assert sf.success
         output_files_found = list(dummy_output_folder.glob('*'))
         assert len(output_files_found) > 0
+        file_to_check = new_scratch_dir / 'test_file.cc'
+        assert file_to_check.exists()
+        file_text = file_to_check.read_text()
+        assert 'ShowSevereError(state, "Something Bad");' in file_text  # it should have rewritten as a single line

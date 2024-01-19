@@ -1,7 +1,7 @@
-from itertools import groupby
 from pathlib import Path
 from typing import Optional
 
+from energyplus_refactor_helper.function_call_group import FunctionCallGroup
 from energyplus_refactor_helper.function_call import FunctionCall
 
 
@@ -17,11 +17,11 @@ class SourceFile:
         self.original_file_text = self.path.read_text()
         self.file_lines = self.original_file_text.split('\n')
         self.found_functions = self.find_functions_in_original_text()
-        self.function_distribution = self.get_function_distribution()
+        self.function_distribution = self.get_binary_function_distribution()
         self.advanced_function_distribution = self.get_advanced_function_distribution()
 
     @staticmethod
-    def type_and_start_index_from_raw_line(functions: list[str], full_raw_line: str) -> tuple[Optional[int], int]:
+    def find_function_in_raw_line(functions: list[str], full_raw_line: str) -> tuple[Optional[int], int]:
         """
         A simple worker function that searches a source line looking for one of the function call strings, and if found,
         returns both the found value along with the index in the line where it was found.
@@ -30,9 +30,10 @@ class SourceFile:
         :param full_raw_line: A full line from the rwa source code, to be searched.
         :return: A tuple, where the first item is an optional found error call type int, and the second is the index.
         """
-        for f_index, f in enumerate(functions):
-            if f in full_raw_line:
-                return f_index, full_raw_line.index(f)
+        for func_index, func in enumerate(functions):
+            func_call = f"{func}("
+            if func_call in full_raw_line:
+                return func_index, full_raw_line.index(func)
         return None, -1
 
     def find_functions_in_original_text(self) -> list[FunctionCall]:
@@ -47,7 +48,7 @@ class SourceFile:
         parsing_multiline = False
         raw_line_start_char_index = 0
         raw_line_end_char_index = -1
-        found_errors = []
+        found_functions = []
         while line_number <= len(self.file_lines):
             raw_line = self.file_lines[line_number - 1]
             raw_line_end_char_index += len(raw_line) + 1  # includes the \n at the end of the line
@@ -66,28 +67,29 @@ class SourceFile:
                     call.finalize(character_end_index, True)
                     reset = True
                 if reset:
-                    found_errors.append(call)
+                    found_functions.append(call)
                     call = None
                     parsing_multiline = False
             else:
                 if any([f"{x}(" in cleaned_line for x in self.functions]):
-                    call_type, call_index_in_line = self.type_and_start_index_from_raw_line(self.functions, raw_line)
+                    call_type, call_index_in_line = self.find_function_in_raw_line(self.functions, raw_line)
+                    function_name = self.functions[call_type]
                     character_start_index = raw_line_start_char_index + call_index_in_line
                     call = FunctionCall(
-                        call_type, line_number, character_start_index, call_index_in_line, raw_line
+                        call_type, function_name, line_number, character_start_index, call_index_in_line, raw_line
                     )
                     if cleaned_line.strip().endswith(';'):
                         character_end_index = raw_line_start_char_index + raw_line.rfind(';')
                         call.finalize(character_end_index, True)
-                        found_errors.append(call)
+                        found_functions.append(call)
                         call = None
                     else:
                         parsing_multiline = True
             raw_line_start_char_index = raw_line_end_char_index + 1
             line_number += 1
-        return found_errors
+        return found_functions
 
-    def get_function_distribution(self) -> list[int]:
+    def get_binary_function_distribution(self) -> list[int]:
         """
         Returns a distribution of function calls for the given file.  This simply returns a 0 or 1, where
         1 indicates the line is part of a function call, and 0 means it is not.
@@ -115,7 +117,7 @@ class SourceFile:
                 line_values[line_num] = max(line_values[line_num], fe.call_type)
         return line_values
 
-    def file_text_fixed_up(self) -> str:
+    def get_new_file_text(self) -> str:
         """
         Modifies the original file text, replacing every function call with the modified version.
 
@@ -123,73 +125,40 @@ class SourceFile:
         """
         new_text = self.original_file_text
         for fe in reversed(self.found_functions):
-            new_text = new_text[:fe.char_start_in_file] + fe.as_single_line() + new_text[fe.char_end_in_file + 1:]
+            new_text = new_text[:fe.char_start_in_file] + fe.as_new_version() + new_text[fe.char_end_in_file + 1:]
         return new_text
 
-    def fixup_file_in_place(self) -> None:
-        # open the file, rewrite with new text
-        self.file_text_fixed_up()
-
-    @staticmethod
-    def create_function_call_chunk_summary(call_group: list[dict]) -> dict:
+    def write_new_text_to_file(self) -> None:
         """
-        This function creates a dict summary of a chunk of contiguous function calls.  It is expected this function will
-        change to returning a nice structure instead of a loosely defined dictionary.
+        Overwrites existing file contents with the modified version, replacing each function call with the new version
+        as defined by the action instance itself.
 
-        :param call_group: A list of dictionaries where each item is a single function call dict.  It is expected that
-                           this argument will change to a list of structs eventually.
-        :return: A single dictionary summary.
+        :return: None
         """
-        # TODO: Change this to return a struct, not a dict
-        num_calls_in_this_chunk = len(call_group)
-        call_types = [e['type'] for e in call_group]
-        cleaned_call_types = [i[0] for i in groupby(call_types)]  # remove duplicates
-        chunk_start_line = call_group[0]['line_start']
-        chunk_end_line = call_group[-1]['line_end']
-        try:
-            concatenated_messages = ' *** '.join([e['args'][1] for e in call_group])
-        except IndexError:  # pragma: no cover
-            # this is almost certainly indicative of a parser problem, so we can't cover it
-            raise Exception(f"Something went wrong with the arg processing for this chunk! {call_group}")
-        return {
-            'num_calls_in_this_chunk': num_calls_in_this_chunk,
-            'call_types': call_types,
-            'cleaned_call_types': cleaned_call_types,
-            'chunk_start_line': chunk_start_line,
-            'chunk_end_line': chunk_end_line,
-            'concatenated_messages': concatenated_messages
-        }
+        self.path.write_text(self.get_new_file_text())
 
-    def group_and_summarize_function_calls(self) -> list[dict]:
+    def get_function_call_groups(self) -> list[FunctionCallGroup]:
         """
-        This function loops over all found function calls in this file, groups them together into contiguous chunks,
-        and results in a list summary of all the function calls.
+        This function loops over all found function calls in this file, groups them together into FunctionCallChunk
+        instances.
 
-        :return: A list of dicts containing full function call info for this file.  It is expected that this will
-                 eventually be converted over to return a list of structs instead of a list of dicts.
+        :return: A list of FunctionCallChunk instances containing full function call info for this file.
         """
-        # TODO: Change this to return a struct, not a dict
         all_args_for_file = []
         last_call_ended_on_line_number = -1
-        latest_chunk = []
+        group = FunctionCallGroup()
         last_call_index = len(self.found_functions) - 1
-        for i, fe in enumerate(self.found_functions):
-            this_single_call = {
-                'type': fe.call_type, 'line_start': fe.starting_line_number,
-                'line_end': fe.ending_line_number, 'args': fe.parse_arguments()
-            }
-            if fe.starting_line_number == last_call_ended_on_line_number + 1:
-                latest_chunk.append(this_single_call)
+        for i, f in enumerate(self.found_functions):
+            this_single_call = f.summary()
+            if f.starting_line_number == last_call_ended_on_line_number + 1:
+                group.add_function_call(this_single_call)
                 if i == last_call_index:
-                    summary = self.create_function_call_chunk_summary(latest_chunk)
-                    all_args_for_file.append({'summary': summary, 'original': latest_chunk})
+                    all_args_for_file.append(group)
             else:
-                if latest_chunk:
-                    summary = self.create_function_call_chunk_summary(latest_chunk)
-                    all_args_for_file.append({'summary': summary, 'original': latest_chunk})
-                latest_chunk = [this_single_call]  # reset the list starting with the current one
+                if group.started:
+                    all_args_for_file.append(group)
+                group = FunctionCallGroup(this_single_call)  # reset the list starting with the current one
                 if i == last_call_index:  # this is the last error, add it to the list before leaving
-                    summary = self.create_function_call_chunk_summary(latest_chunk)
-                    all_args_for_file.append({'summary': summary, 'original': latest_chunk})
-            last_call_ended_on_line_number = fe.ending_line_number
+                    all_args_for_file.append(group)
+            last_call_ended_on_line_number = f.ending_line_number
         return all_args_for_file

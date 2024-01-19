@@ -2,10 +2,10 @@ from energyplus_refactor_helper.logger import logger
 
 
 class FunctionCall:
-
     MAX_LINES_FOR_SINGLE_CALL = 13  # to detect/avoid parsing issues
 
-    def __init__(self, call: int, line_start: int, file_start_index: int, line_start_index: int, first_line_text: str):
+    def __init__(self, call: int, func_name: str, line_start: int, file_start_index: int, line_start_index: int,
+                 first_line_text: str):
         """
         This class represents a single function call in the EnergyPlus source code.
         The parsing algorithms here rely on specific EnergyPlus source code style/structure assumptions, and are surely
@@ -16,7 +16,9 @@ class FunctionCall:
         function call when the end is reached.  The function call can then be parsed into arguments using methods here.
 
         :param call: This represents an integer call type, which is essentially the index of the function in the
-                     derived :meth:`RefactorBase.function_calls()` method.
+                     derived :meth:`energyplus_refactor_helper.action.RefactorBase.function_calls()` method.
+        :param func_name: This is the function name for this function call as defined in the
+                          :meth:`energyplus_refactor_helper.action.RefactorBase.function_calls()` method.
         :param line_start: This is the 1-based line number where this function call starts in the file.
         :param file_start_index: This is the character index in the raw file text where the function call starts.
         :param line_start_index: This is the character index in the first line of the function call where the
@@ -24,6 +26,7 @@ class FunctionCall:
         :param first_line_text: This is the raw first line text where the function call starts.
         """
         self.call_type = call
+        self.function_name = func_name
         self.multiline_text = [first_line_text]
         self.starting_line_number = line_start
         self.ending_line_number = line_start  # initialize here
@@ -68,13 +71,21 @@ class FunctionCall:
             skip_first_line_to_call_start.append(this_line_content)
         return [x.strip() for x in skip_first_line_to_call_start]
 
-    def as_single_line(self) -> str:
+    def as_new_version(self) -> str:
         """
-        After a function call has been finalized, this function provides the function call formatted as a single line.
+        This function will provide the modified version of a single function call.  Right now this
+        function simply rewrites the function call as a single line with no functional change.
+        The advantage of this is that we can verify our parsing by simply rewriting all function calls
+        in the source code, reapplying Clang Format, and making sure we didn't break anything.
+        In the future, this function will utilize action-specific functionality to manipulate the
+        function call in more meaningful ways.  There will likely be a callback function on the
+        action/Refactor class that takes a function name and argument list and returns the modified
+        version.
 
-        :return: A single string representation of the function call.
+        :return: A string representation of the function call after changes have been applied.
         """
-        return ''.join(self.as_cleaned_multiline()).strip()
+        args = ', '.join(self.parse_arguments())
+        return f"{self.function_name}({args});"
 
     def parse_arguments(self) -> list[str]:
         """
@@ -104,7 +115,7 @@ class FunctionCall:
                     reading_comment_until_new_line = False
             elif inside_raw_literal:
                 current_arg += c
-                if c == '"' and one_string[i-1] == ')':
+                if c == '"' and one_string[i - 1] == ')':
                     grouping_stack.pop()
             elif inside_literal and c == '\\':
                 current_arg += c
@@ -122,6 +133,15 @@ class FunctionCall:
                         about_to_enter_string_literal = False
                     else:
                         grouping_stack.append(c)
+            elif c == '\'':
+                current_arg += c
+                if grouping_stack[-1] == '\'':
+                    grouping_stack.pop()
+                elif grouping_stack[-1] == '\"':
+                    # then we have a raw apostrophe inside a literal, just keep going
+                    pass  # we already added to current_arg a few lines up, just go
+                else:
+                    grouping_stack.append(c)
             elif inside_literal:
                 current_arg += c
             elif c == '(':
@@ -140,11 +160,11 @@ class FunctionCall:
             elif c == ',' and len(grouping_stack) == 1:
                 args.append(current_arg)
                 current_arg = ''
-            elif c == 'R' and one_string[i+1] == '"' and one_string[i+2] == '(':
+            elif c == 'R' and one_string[i + 1] == '"' and one_string[i + 2] == '(':
                 # it appears we are about to enter a raw literal
                 about_to_enter_string_literal = True
                 current_arg += c
-            elif c == '/' and one_string[i+1] == '/':
+            elif c == '/' and one_string[i + 1] == '/':
                 reading_comment_until_new_line = True
             elif c == '\n':
                 continue  # just eat the newline
@@ -152,6 +172,13 @@ class FunctionCall:
                 current_arg += c
         return [a.strip() for a in args]
 
+    def summary(self) -> dict:
+        return {
+            'type': self.call_type, 'line_start': self.starting_line_number,
+            'line_end': self.ending_line_number, 'args': self.parse_arguments()
+        }
+
     def __str__(self):
         """String representation summary of the function call"""
-        return f"{self.starting_line_number} - {self.ending_line_number} : {self.as_single_line()[:35]}"
+        single_line = ''.join(self.as_cleaned_multiline()).strip()
+        return f"{self.starting_line_number} - {self.ending_line_number} : {single_line[:35]}"

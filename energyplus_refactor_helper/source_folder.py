@@ -59,12 +59,12 @@ class SourceFolder:
 
         :return: None
         """
+        logger.log("Processing files to identify function calls in each")
         self.processed_files = []
         for file_num, source_file in enumerate(sorted(self.matched_files)):
             self.processed_files.append(SourceFile(source_file, self.function_call_list))
             logger.terminal_progress_bar(file_num + 1, len(self.matched_files), source_file.name)
         logger.terminal_progress_done()
-        logger.log("Finished Processing, ready to generate results")
 
     def fixup_files_in_place(self) -> None:
         """
@@ -73,8 +73,12 @@ class SourceFolder:
 
         :return: None
         """
-        for s in self.processed_files:
-            s.fixup_file_in_place()  # rewrite the file contents
+        logger.log("Now fixing up files in place with new function calls")
+        num_files = len(self.processed_files)
+        for file_num, s in enumerate(self.processed_files):
+            s.write_new_text_to_file()  # rewrite the file contents
+            logger.terminal_progress_bar(file_num + 1, num_files, s.path.name)
+        logger.terminal_progress_done()
 
     def generate_outputs(self, output_dir: Path) -> None:
         """
@@ -103,13 +107,13 @@ class SourceFolder:
         :param output_json_file: The output file path to write.
         :return: None
         """
+        logger.log("Building JSON summary output")
         full_json_content = {}
         for file_num, source_file in enumerate(self.processed_files):
-            full_json_content[source_file.path.name] = source_file.group_and_summarize_function_calls()
+            full_json_content[source_file.path.name] = [g.to_json() for g in source_file.get_function_call_groups()]
             logger.terminal_progress_bar(file_num + 1, len(self.processed_files), source_file.path.name)
         logger.terminal_progress_done()
         output_json_file.write_text(dumps(full_json_content, indent=2))
-        logger.log("Finished Building JSON outputs")
 
     def generate_file_summary_csv(self, output_csv_file: Path) -> None:
         """
@@ -154,6 +158,7 @@ class SourceFolder:
         :param output_file_file: The output file path to write.
         :return: None
         """
+        logger.log("Building plot data")
         y_max = len(self.function_call_list)
         file_names = [x.path.name for x in self.processed_files]
         data = [x.advanced_function_distribution for x in self.processed_files]

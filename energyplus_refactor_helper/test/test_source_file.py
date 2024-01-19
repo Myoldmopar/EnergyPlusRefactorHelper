@@ -6,7 +6,7 @@ from energyplus_refactor_helper.source_file import SourceFile
 
 this_file = Path(__file__).resolve()
 test_file = this_file.parent / 'fake_source_folder' / 'src' / 'EnergyPlus' / 'test_file.cc'
-funcs = ErrorCallRefactor().function_calls()  # just create a dummy instance here for convenience
+funcs = ErrorCallRefactor().function_calls()  # TODO: use a custom list not a demo action
 
 
 class TestSourceFile:

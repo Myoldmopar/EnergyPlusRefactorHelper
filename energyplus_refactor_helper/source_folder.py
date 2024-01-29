@@ -102,7 +102,7 @@ class SourceFolder:
         self.generate_json_outputs(output_dir / 'results.json')
         self.generate_file_summary_csv(output_dir / 'file_summary.csv')
         self.generate_line_details_csv(output_dir / 'lines_summary.csv')
-        # self.generate_line_details_plot(output_dir / 'distribution_plot.png')
+        self.generate_line_details_plot(output_dir / 'distribution_plot.png')
 
     def generate_json_outputs(self, output_json_file: Path) -> None:
         """

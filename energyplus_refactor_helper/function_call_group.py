@@ -11,7 +11,7 @@ class FunctionCallGroup:
         a list of function call instances, but some extra intelligence can apply specifically to a group of calls.
         so a class is here to provide that context.
         """
-        self.function_calls = []
+        self.function_calls: list[FunctionCall] = []
         self.started = False
         if initial_call:
             self.add_function_call(initial_call)

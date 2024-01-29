@@ -148,11 +148,9 @@ class SourceFile:
         # TODO: Just create dummy RefactorBase-d test action classes that we use in all the unit tests
         new_text = self.original_file_text
         for fg in reversed(self.found_function_groups):
-            first_in_group = fg.function_calls[0]
-            last_in_group = fg.function_calls[-1]
-            new_text = new_text[:first_in_group.char_start_in_file] + group_visitor(fg) + new_text[last_in_group.char_end_in_file + 1:]
-            if '!msg.empty()' in new_text:
-                i = 1
+            first = fg.function_calls[0]
+            last = fg.function_calls[-1]
+            new_text = new_text[:first.char_start_in_file] + group_visitor(fg) + new_text[last.char_end_in_file + 1:]
         return new_text
 
     def write_new_text_to_file(self) -> None:

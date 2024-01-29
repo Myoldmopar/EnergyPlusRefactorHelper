@@ -31,12 +31,12 @@ class FunctionCallGroup:
         :return: A single dictionary summary.
         """
         num_calls_in_this_chunk = len(self.function_calls)
-        call_types = [e['type'] for e in self.function_calls]
+        call_types = [e.call_type for e in self.function_calls]
         cleaned_call_types = [i[0] for i in groupby(call_types)]  # remove duplicates
-        chunk_start_line = self.function_calls[0]['line_start']
-        chunk_end_line = self.function_calls[-1]['line_end']
+        chunk_start_line = self.function_calls[0].starting_line_number
+        chunk_end_line = self.function_calls[-1].ending_line_number
         try:
-            concatenated_messages = ' *** '.join([e['args'][1] for e in self.function_calls])
+            concatenated_messages = ' *** '.join([e.parse_arguments()[1] for e in self.function_calls])
         except IndexError:  # pragma: no cover
             # this is almost certainly indicative of a parser problem, so we can't cover it
             raise Exception(f"Something went wrong with the arg processing for this chunk! {self.function_calls}")
@@ -50,4 +50,4 @@ class FunctionCallGroup:
         }
 
     def to_json(self) -> dict:
-        return {'summary': self.summary_dict(), 'original': self.function_calls}
+        return {'summary': self.summary_dict(), 'original': [str(f) for f in self.function_calls]}

@@ -7,12 +7,14 @@ from energyplus_refactor_helper.source_file import SourceFile
 this_file = Path(__file__).resolve()
 test_file = this_file.parent / 'fake_source_folder' / 'src' / 'EnergyPlus' / 'test_file.cc'
 funcs = ErrorCallRefactor().function_calls()  # TODO: use a custom list not a demo action
+group_flag = ErrorCallRefactor().visits_each_group()
+function_visitor = ErrorCallRefactor().function_visitor
 
 
 class TestSourceFile:
 
     def test_basic_operation(self):
-        sf = SourceFile(test_file, funcs)
+        sf = SourceFile(test_file, funcs, group_flag, function_visitor)
         sf.find_functions_in_original_text()
         assert len(sf.found_functions) == 9
 
@@ -42,7 +44,7 @@ namespace UnitarySystems {
 }
 """
         p.write_text(raw_text)
-        sf = SourceFile(p, funcs)
+        sf = SourceFile(p, funcs, group_flag, function_visitor)
         sf.find_functions_in_original_text()
         assert len(sf.found_functions) == 2
         found_error = sf.found_functions[0]
@@ -66,7 +68,7 @@ void func() {
 }
 """
         p.write_text(raw_text)
-        sf = SourceFile(p, funcs)
+        sf = SourceFile(p, funcs, group_flag, function_visitor)
         sf.find_functions_in_original_text()
         assert len(sf.found_functions) == 3
         error_call_info = sf.get_function_call_groups()
@@ -79,7 +81,7 @@ void func() {
           if (j > NumCur) ShowFatalError(state, "Out of range, too high (FAN) in ADS simulation");
         """
         p.write_text(raw_text)
-        sf = SourceFile(p, funcs)
+        sf = SourceFile(p, funcs, group_flag, function_visitor)
         sf.find_functions_in_original_text()
         assert len(sf.found_functions) == 1
         found_error = sf.found_functions[0]
@@ -110,7 +112,7 @@ void func() {
     );
         """
         p.write_text(raw_text)
-        sf = SourceFile(p, funcs)
+        sf = SourceFile(p, funcs, group_flag, function_visitor)
         sf.find_functions_in_original_text()
         found_error = sf.found_functions[0]
         assert not found_error.appears_successful

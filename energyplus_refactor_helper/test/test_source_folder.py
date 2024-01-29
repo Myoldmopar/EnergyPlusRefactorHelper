@@ -7,6 +7,8 @@ from energyplus_refactor_helper.action import ErrorCallRefactor
 from energyplus_refactor_helper.source_folder import SourceFolder
 
 funcs = ErrorCallRefactor().function_calls()  # TODO: Use a custom dummy list here, not a real demo
+group_flag = ErrorCallRefactor().visits_each_group()
+function_visitor = ErrorCallRefactor().function_visitor
 
 
 class TestSourceFolder:
@@ -19,17 +21,25 @@ class TestSourceFolder:
 
     def test_it_finds_matching_files_recursively(self):
         fake_source_folder, dummy_output_folder = TestSourceFolder.set_up_dirs()
-        sf = SourceFolder(fake_source_folder, dummy_output_folder, [], funcs, False)
+        sf = SourceFolder(
+            fake_source_folder, dummy_output_folder, [], funcs, False, group_flag, function_visitor
+        )
         assert len(sf.matched_files) == 4
 
     def test_it_finds_matching_files_including_ignored(self):
         fake_source_folder, dummy_output_folder = TestSourceFolder.set_up_dirs()
-        sf = SourceFolder(fake_source_folder, dummy_output_folder, ['file_to_ignore.cc'], funcs, False)
+        sf = SourceFolder(
+            fake_source_folder, dummy_output_folder, ['file_to_ignore.cc'], funcs,
+            False, group_flag, function_visitor
+        )
         assert len(sf.matched_files) == 3
 
     def test_full_workflow(self):
         fake_source_folder, dummy_output_folder = TestSourceFolder.set_up_dirs()
-        sf = SourceFolder(fake_source_folder, dummy_output_folder, ['file_to_ignore.cc'], funcs, False)
+        sf = SourceFolder(
+            fake_source_folder, dummy_output_folder, ['file_to_ignore.cc'], funcs,
+            False, group_flag, function_visitor
+        )
         assert sf.success
         output_files_found = list(dummy_output_folder.glob('*'))
         assert len(output_files_found) > 0
@@ -37,7 +47,10 @@ class TestSourceFolder:
     def test_it_creates_output_folder_if_not_exists(self):
         src_folder, dummy_output_folder = TestSourceFolder.set_up_dirs()
         nonexistent_dummy_output_folder = dummy_output_folder / 'dummy'
-        sf = SourceFolder(src_folder, nonexistent_dummy_output_folder, ['file_to_ignore.cc'], funcs, False)
+        sf = SourceFolder(
+            src_folder, nonexistent_dummy_output_folder, ['file_to_ignore.cc'], funcs,
+            False, group_flag, function_visitor
+        )
         assert sf.success
         output_files_found = list(nonexistent_dummy_output_folder.glob('*'))
         assert len(output_files_found) > 0
@@ -46,7 +59,10 @@ class TestSourceFolder:
         new_scratch_dir = Path(tempfile.mkdtemp()) / 'new_scratch_dir'
         test_source_dir, dummy_output_folder = TestSourceFolder.set_up_dirs()
         copytree(test_source_dir, new_scratch_dir)
-        sf = SourceFolder(new_scratch_dir, dummy_output_folder, ['file_to_ignore.cc'], funcs, True)
+        sf = SourceFolder(
+            new_scratch_dir, dummy_output_folder, ['file_to_ignore.cc'], funcs,
+            True, group_flag, function_visitor
+        )
         assert sf.success
         output_files_found = list(dummy_output_folder.glob('*'))
         assert len(output_files_found) > 0

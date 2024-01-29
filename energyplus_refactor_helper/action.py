@@ -45,6 +45,29 @@ class RefactorBase:
         """
         raise NotImplementedError()
 
+    # noinspection PyMethodMayBeStatic
+    def function_visitor(self, function_call_or_group) -> str:
+        """
+        This method will visit _either_ each function call, or each function call group, and generate a new string
+        representation of that call or group.  The object passed in is determined by the visits_each_group() member
+        method on this class.  By default, it will be False, indicating that this action should operate on each function
+        call.  However, if that method returns True, this method will need to expect an entire function call group.
+
+        :param function_call_or_group: The FunctionCall or FunctionCallGroup to inspect, and from that, generate a new
+                                       string representation.  By default, the base action will get visited on each
+                                       function call, and generate a 'single line' version of the function call.
+                                       The advantage of this is that we can verify our parsing by simply rewriting all
+                                       function calls in the source code, reapplying Clang Format, and making sure we
+                                       didn't break anything.
+        :return: A string representation of the function call or function call group.
+        """
+        args = ', '.join(function_call_or_group.parse_arguments())
+        return f"{function_call_or_group.function_name}({args});"
+
+    # noinspection PyMethodMayBeStatic
+    def visits_each_group(self) -> bool:
+        return False
+
     def run(self, source_repo: Path, output_path: Path, edit_in_place: bool) -> int:
         """
         This method performs the actual run operations based on input arguments.  The method calls (possibly overridden)
@@ -59,7 +82,10 @@ class RefactorBase:
         """
         file_names_to_ignore = self.file_names_to_ignore()
         source_path = self.analysis_root_from_repo_root(source_repo)
-        sf = SourceFolder(source_path, output_path, file_names_to_ignore, self.function_calls(), edit_in_place)
+        sf = SourceFolder(
+            source_path, output_path, file_names_to_ignore, self.function_calls(),
+            edit_in_place, self.visits_each_group(), self.function_visitor
+        )
         return 0 if sf.success else 1
 
 
@@ -109,6 +135,32 @@ class ErrorCallRefactor(RefactorBase):
             "ShowWarningEmptyField",
             "ShowWarningItemNotFound"
         ]
+
+    def function_visitor(self, function_group) -> str:
+        """
+        For this action class, this function will be visited for each function call "group".  This function will assess
+        the function group, looking for different ways to rewrite the group as a new string.  For right now, this will
+        simply iterate over the function group as a whole and rewrite each function call on a new line.  This allows for
+        a nice quick test where we can re-apply Clang Format and get back nearly identical code.  In upcoming versions,
+        this function will instead group multiple function calls into a single new interface with the messages passed as
+        an initializer-list-based array of strings, and also a (for now) dummy error code.  In the final version, this
+        will write correct error codes.
+
+        :param function_group: The FunctionCallGroup to inspect, and from that, generate a new string representation.
+        :return: A string representation of the function call group.
+        """
+        individual_call_strings = []
+        for i, function in enumerate(function_group.function_calls):
+            args = ', '.join(function.parse_arguments())
+            full_call = f"{function.function_name}({args});"
+            include_prefix = len(function_group.function_calls) > 0 and i > 0
+            including_prefix = (function.preceding_text + full_call) if include_prefix else full_call
+            individual_call_strings.append(including_prefix)
+        return '\n'.join(individual_call_strings)
+
+    # noinspection PyMethodMayBeStatic
+    def visits_each_group(self) -> bool:
+        return True
 
 
 all_actions: dict[str, Type[RefactorBase]] = {

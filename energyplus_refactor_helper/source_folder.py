@@ -8,7 +8,8 @@ from energyplus_refactor_helper.source_file import SourceFile
 
 
 class SourceFolder:
-    def __init__(self, root: Path, out: Path, ignore: list[str], functions: list[str], edit: bool, match=None):
+    def __init__(self, root: Path, out: Path, ignore: list[str], functions: list[str], edit: bool, call_group: bool,
+                 visitor, match=None):
         """
         The SourceFolder class represents a folder that is to be analyzed during this refactor.  The SourceFolder is
         aware of all settings and will recursively search for matching functions and analyze/edit as needed.
@@ -18,6 +19,10 @@ class SourceFolder:
         :param ignore: A list of file names to ignore when looking for source files to analyze.
         :param functions: A list of function calls to search for in the source files.
         :param edit: A flag for whether to actually edit the found source files in place or not.
+        :param call_group: A flag for whether the SourceFile instances will manipulate function calls or function call
+                           groups.  This is generally set by the action's visits_each_group() function.
+        :param visitor: A callable function that takes either a FunctionCall or a FunctionCallInstance and returns a
+                        string.  The type should depend on the group_flag argument.
         :param match: A list of source file name patterns to match when searching.  If nothing is passed in, it will
                       default to finding all .cc and .cpp files.
         """
@@ -25,6 +30,8 @@ class SourceFolder:
         self.root = root
         self.function_call_list = functions
         self.file_names_to_ignore = ignore
+        self.group_flag = call_group
+        self.visitor = visitor
         self.matched_files = self.locate_source_files(match if match else ["*.cc", "*.cpp"])  # could include *.hh
         logger.log(f"SourceFolder object constructed, identified {len(self.matched_files)} files ready to analyze.")
         self._analyze()
@@ -62,7 +69,7 @@ class SourceFolder:
         logger.log("Processing files to identify function calls in each")
         self.processed_files = []
         for file_num, source_file in enumerate(sorted(self.matched_files)):
-            self.processed_files.append(SourceFile(source_file, self.function_call_list))
+            self.processed_files.append(SourceFile(source_file, self.function_call_list, self.group_flag, self.visitor))
             logger.terminal_progress_bar(file_num + 1, len(self.matched_files), source_file.name)
         logger.terminal_progress_done()
 
@@ -95,7 +102,7 @@ class SourceFolder:
         self.generate_json_outputs(output_dir / 'results.json')
         self.generate_file_summary_csv(output_dir / 'file_summary.csv')
         self.generate_line_details_csv(output_dir / 'lines_summary.csv')
-        self.generate_line_details_plot(output_dir / 'distribution_plot.png')
+        # self.generate_line_details_plot(output_dir / 'distribution_plot.png')
 
     def generate_json_outputs(self, output_json_file: Path) -> None:
         """

@@ -60,8 +60,7 @@ class RefactorBase:
     def default_function_group_visitor(function_group) -> str:
         individual_call_strings = []
         for i, function in enumerate(function_group.function_calls):
-            args = ', '.join(function.parse_arguments())
-            full_call = f"{function.function_name}({args});"
+            full_call = function.rewrite()
             include_prefix = len(function_group.function_calls) > 0 and i > 0
             including_prefix = (function.preceding_text + full_call) if include_prefix else full_call
             individual_call_strings.append(including_prefix)

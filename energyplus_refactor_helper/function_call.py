@@ -161,3 +161,11 @@ class FunctionCall:
         """String representation summary of the function call"""
         single_line = ''.join(self.as_cleaned_multiline()).strip()
         return f"{self.starting_line_number} - {self.ending_line_number} : {single_line[:35]}"
+
+    def rewrite(self) -> str:
+        """
+        Rewrite the function call as a string, functionally equivalent to the original form, but modified with
+        line breaks and such missing.
+        """
+        args = ', '.join(self.parse_arguments())
+        return f"{self.function_name}({args});"

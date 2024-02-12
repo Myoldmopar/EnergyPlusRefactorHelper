@@ -1,16 +1,13 @@
 from pathlib import Path
 from tempfile import mkstemp
 
-from energyplus_refactor_helper.action import ErrorCallRefactor
 from energyplus_refactor_helper.function_call import FunctionCall
 from energyplus_refactor_helper.function_call_group import FunctionCallGroup
 from energyplus_refactor_helper.source_file import SourceFile
 
 this_file = Path(__file__).resolve()
 test_file = this_file.parent / 'fake_source_folder' / 'src' / 'EnergyPlus' / 'test_file.cc'
-funcs = ErrorCallRefactor().function_calls()  # TODO: use a custom list not a demo action
-group_flag = ErrorCallRefactor().visits_each_group()
-function_visitor = ErrorCallRefactor().visitor
+funcs = ['ShowSevereError', 'ShowContinueError', 'ShowFatalError', 'ShowWarningError']
 
 
 def test_basic_operation():
@@ -124,7 +121,7 @@ ShowContinueError(state,
 def test_call_type_worker_function():
     message = "Something - ShowContinueError(blah,"
     call, ind = SourceFile.find_function_in_raw_line(funcs, message)
-    assert call == 3
+    assert call == funcs.index('ShowContinueError')
     assert ind == 12
 
     message = "Nothing here!"

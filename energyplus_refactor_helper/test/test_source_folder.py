@@ -3,10 +3,9 @@ import tempfile
 from pathlib import Path
 from tempfile import mkdtemp
 
-from energyplus_refactor_helper.action import ErrorCallRefactor
 from energyplus_refactor_helper.source_folder import SourceFolder
 
-funcs = ErrorCallRefactor().function_calls()  # TODO: Use a custom dummy list here, not a real demo
+funcs = ['ShowSevereError', 'ShowContinueError', 'ShowFatalError', 'ShowWarningError']
 
 
 class TestSourceFolder:

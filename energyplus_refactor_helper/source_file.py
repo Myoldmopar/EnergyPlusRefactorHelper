@@ -7,21 +7,15 @@ from energyplus_refactor_helper.function_call import FunctionCall
 
 class SourceFile:
 
-    def __init__(self, path: Path, function_calls: list[str], group_flag: bool, visitor):
+    def __init__(self, path: Path, function_calls: list[str]):
         """
         This class represents a single source code file, processing it to find all matching function calls, and
         providing functionality to refactor them into a new form automatically.
 
         :param path: The Path instance pointing to this source file
         :param function_calls: The list of function calls currently being searched
-        :param group_flag: A flag indicating whether the action will operate on groups of function calls (if True)
-                                 or individual function calls (if False)
-        :param visitor: A callable function that takes either a FunctionCall or a FunctionCallInstance and returns a
-                        string.  The type should depend on the group_flag argument.
         """
         self.path = path
-        self.visitor = visitor
-        self.operate_on_group = group_flag
         self.functions = function_calls
         self.original_file_text = self.path.read_text()
         self.file_lines = self.original_file_text.split('\n')
@@ -153,17 +147,21 @@ class SourceFile:
             new_text = new_text[:first.char_start_in_file] + group_visitor(fg) + new_text[last.char_end_in_file + 1:]
         return new_text
 
-    def write_new_text_to_file(self) -> None:
+    def write_new_text_to_file(self, visitor, operate_on_group: bool) -> None:
         """
         Overwrites existing file contents with the modified version, replacing each function call with the new version
         as defined by the action instance itself.
 
+        :param visitor: A callable function that takes either a FunctionCall or a FunctionCallInstance and returns a
+                        string.  The type should depend on the group_flag argument.
+        :param operate_on_group: A flag indicating whether the action will operate on groups of function calls (if True)
+                                 or individual function calls (if False)
         :return: None
         """
-        if self.operate_on_group:
-            self.path.write_text(self.get_new_file_text_group_based(self.visitor))
+        if operate_on_group:
+            self.path.write_text(self.get_new_file_text_group_based(visitor))
         else:
-            self.path.write_text(self.get_new_file_text_function_based(self.visitor))
+            self.path.write_text(self.get_new_file_text_function_based(visitor))
 
     def get_function_call_groups(self) -> list[FunctionCallGroup]:
         """

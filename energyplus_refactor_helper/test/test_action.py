@@ -14,6 +14,6 @@ class TestActionBase:
         assert isinstance(rb.analysis_root_from_repo_root(Path('dummy')), Path)
         assert isinstance(rb.visits_each_group(), bool)
         fc = FunctionCall(0, 'f(x, y);', 0, 0, 0, 'x')
-        assert isinstance(rb.function_visitor(fc), str)
+        assert isinstance(rb.visitor(fc), str)
         with raises(NotImplementedError):
             rb.function_calls()

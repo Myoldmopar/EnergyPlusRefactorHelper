@@ -31,7 +31,7 @@ class FunctionCall:
         self.starting_line_number = line_start
         self.ending_line_number = line_start  # initialize here
         self.char_start_in_file = file_start_index
-        self.preceding_text = first_line_text[0:line_start_index]
+        self.preceding_text = first_line_text[0:line_start_index].strip()
         self.char_start_first_line = line_start_index
         self.char_end_in_file = -1
         self.appears_successful = True

@@ -10,46 +10,8 @@ from energyplus_refactor_helper.source_folder import SourceFolder
 
 
 class RefactorBase:
-    """
-    This is an abstract base class for refactors in this package.  Right now it only supports finding function calls, so
-    the only thing really needed from a derived class is to override the function_calls() pure virtual method here.
-    There are other methods which can be used to set/override refactor parameters if needed.
-    """
-
-    # noinspection PyMethodMayBeStatic
-    def file_names_to_ignore(self) -> list[str]:
-        """
-        This method returns a list of file names that should be ignored during this refactor.  The primary reason for
-        this is to avoid having the refactor engine match the actual function definition/declaration.  By default, this
-        returns an empty list, but should return file names as strings if it is overridden.
-
-        :return: A list of file names that should be ignored during this refactor.
-        """
-        return []
-
-    # noinspection PyMethodMayBeStatic
-    def analysis_root_from_repo_root(self, repo_root_path: Path) -> Path:
-        """
-        This method returns a Path to the root of the refactor search.  The primary use of this method is to isolate the
-        refactor to only a certain subdirectory.  By default, this method returns the src/EnergyPlus directory within
-        the repository, but can be overridden to return any directory relative to the EnergyPlus project/repo root.
-
-        :param repo_root_path: The root of the EnergyPlus repository/project.
-        :return: A Path object relative to the passed in repository root.
-        """
-        return repo_root_path / 'src' / 'EnergyPlus'
-
-    def function_calls(self) -> list[str]:  # return something better eventually
-        """
-        This method returns a list of function names that should be matched during this refactor.  In the future, it is
-        expected that this function returns more meaningful information, but this is all that is needed right now.
-
-        :return: A list of function names.
-        """
-        raise NotImplementedError()
-
     @staticmethod
-    def default_function_call_visitor(function_call) -> str:
+    def base_function_call_visitor(function_call) -> str:
         """
         This is a small helper function that simply takes a function call argument, and rewrites it in a functionally
         equivalent manner, returning that string.
@@ -60,7 +22,7 @@ class RefactorBase:
         return function_call.rewrite()
 
     @staticmethod
-    def default_function_group_visitor(function_group) -> str:
+    def base_function_group_visitor(function_group) -> str:
         individual_call_strings = []
         for i, function in enumerate(function_group.function_calls):
             full_call = function.rewrite()
@@ -69,49 +31,8 @@ class RefactorBase:
             individual_call_strings.append(including_prefix)
         return '\n'.join(individual_call_strings)
 
-    # noinspection PyMethodMayBeStatic
-    def visitor(self, function_call_or_group) -> str:
-        """
-        This method will visit _either_ each function call, or each function call group, and generate a new string
-        representation of that call or group.  The object passed in is determined by the visits_each_group() member
-        method on this class.  By default, it will be False, indicating that this action should operate on each function
-        call.  However, if that method returns True, this method will need to expect an entire function call group.
-
-        :param function_call_or_group: The FunctionCall or FunctionCallGroup to inspect, and from that, generate a new
-                                       string representation.  By default, the base action will get visited on each
-                                       function call, and generate a 'single line' version of the function call.
-                                       The advantage of this is that we can verify our parsing by simply rewriting all
-                                       function calls in the source code, reapplying Clang Format, and making sure we
-                                       didn't break anything.
-        :return: A string representation of the function call or function call group.
-        """
-        return RefactorBase.default_function_call_visitor(function_call_or_group)
-
-    # noinspection PyMethodMayBeStatic
-    def visits_each_group(self) -> bool:
-        return False
-
     def run(self, source_repo: Path, output_path: Path, edit_in_place: bool, skip_plots: bool) -> int:
-        """
-        This method performs the actual run operations based on input arguments.  The method calls (possibly overridden)
-        methods to get run data, then creates a SourceFolder instance, performs operations, and returns a success flag
-        with 0 if successful and 1 if not.
-
-        :param source_repo: The root of the EnergyPlus repository to operate upon.
-        :param output_path: An output directory where logs and results should be dumped.
-        :param edit_in_place: A flag for whether we are actually editing the repository files in place.  If not, then
-                              this will mostly just result in analysis, with outputs in the output_path provided.
-        :param skip_plots: A flag for whether to skip plot generation, which can be time-consuming.
-        :return: A status flag, 0 if successful, 1 if not.
-        """
-        root_path = self.analysis_root_from_repo_root(source_repo)
-        sf = SourceFolder(root_path, self.function_calls())
-        matched_source_files = sf.find_files(self.file_names_to_ignore())
-        processed_source_files = sf.analyze_source_files(matched_source_files)
-        sf.generate_reports(processed_source_files, output_path, skip_plots=skip_plots)
-        if edit_in_place:
-            sf.rewrite_files_in_place(processed_source_files, self.visitor, self.visits_each_group())
-        return 0 if sf.success else 1
+        raise NotImplementedError()
 
 
 class ErrorCallRefactor(RefactorBase):
@@ -120,14 +41,6 @@ class ErrorCallRefactor(RefactorBase):
     and have their own description below.
     """
 
-    def file_names_to_ignore(self) -> list[str]:
-        """
-        This method returns just UtilityRoutines.cc, which is where these error functions are located.
-
-        :return: A list with a single object, a string UtilityRoutines.cc
-        """
-        return ['UtilityRoutines.cc']
-
     class CallSymbols:
         ShowFatalError = 0
         ShowSevereError = 1
@@ -135,7 +48,8 @@ class ErrorCallRefactor(RefactorBase):
         ShowContinueError = 3
         ShowWarningError = 6
 
-    def function_calls(self) -> list[str]:
+    @staticmethod
+    def function_calls() -> list[str]:
         """
         This method returns all the error functions we want to match during this refactor.
 
@@ -183,7 +97,7 @@ class ErrorCallRefactor(RefactorBase):
         """
         if any([f.preceding_text != "" for f in function_group.function_calls]):
             # if there is meaningful text in the group, outside the function calls themselves, just ignore this group
-            return RefactorBase.default_function_group_visitor(function_group)
+            return RefactorBase.base_function_group_visitor(function_group)
         else:
             # get some convenience variables
             one_liner = len(function_group.function_calls) == 1
@@ -218,11 +132,7 @@ class ErrorCallRefactor(RefactorBase):
             elif one_liner and starts_with_fatal:
                 return f"emitErrorMessage({state}, -999, {argument_one}, true);"
             else:
-                return RefactorBase.default_function_group_visitor(function_group)
-
-    # noinspection PyMethodMayBeStatic
-    def visits_each_group(self) -> bool:
-        return True
+                return RefactorBase.base_function_group_visitor(function_group)
 
     def run(self, source_repo: Path, output_path: Path, edit_in_place: bool, skip_plots: bool) -> int:
         """This method performs the actual run operations based on input arguments for the error call action.
@@ -237,9 +147,9 @@ class ErrorCallRefactor(RefactorBase):
         :param skip_plots: A flag for whether to skip plot generation, which can be time-consuming.
         :return: A status flag, 0 if successful, 1 if not.
         """
-        root_path = self.analysis_root_from_repo_root(source_repo)
+        root_path = source_repo / 'src' / 'EnergyPlus'
         source_folder = SourceFolder(root_path, self.function_calls())
-        matched_source_files = source_folder.find_files(self.file_names_to_ignore())
+        matched_source_files = source_folder.find_files(['UtilityRoutines.cc'])
         processed_source_files = source_folder.analyze_source_files(matched_source_files)
         error_message_texts = []
         for source_file in processed_source_files:
@@ -261,7 +171,7 @@ class ErrorCallRefactor(RefactorBase):
                 encounters.add((i, j))
                 compares.add((d1.text, d2.text, d1.similarity(d2)))
                 counter += 1
-                if counter % 200 == 0:
+                if counter % 200 == 0:  # pragma: no cover
                     logger.terminal_progress_bar(counter, expected_comparison_count, (i, j))
         logger.terminal_progress_done()
         # with open('/tmp/output.txt', 'w') as f:
@@ -270,8 +180,9 @@ class ErrorCallRefactor(RefactorBase):
         #             break
         #         f.write(f"{compare[0]} 😊 {compare[1]} 😊 {compare[2]}\n")
         source_folder.generate_reports(processed_source_files, output_path, skip_plots=skip_plots)
-        if edit_in_place:
-            source_folder.rewrite_files_in_place(processed_source_files, self.visitor, self.visits_each_group())
+        if edit_in_place:  # pragma: no cover
+            # the rewrite files in place method is already being tested, not including it in coverage here
+            source_folder.rewrite_files_in_place(processed_source_files, self.visitor, True)
         return 0 if source_folder.success else 1
 
 

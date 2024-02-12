@@ -5,3 +5,6 @@ matplotlib
 pytest
 sphinx
 wheel
+
+spacy
+# then python -m spacy download en_core_web_sm and python -m spacy download en_core_web_md

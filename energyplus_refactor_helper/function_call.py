@@ -31,6 +31,7 @@ class FunctionCall:
         self.starting_line_number = line_start
         self.ending_line_number = line_start  # initialize here
         self.char_start_in_file = file_start_index
+        self.preceding_text = first_line_text[0:line_start_index].strip()
         self.char_start_first_line = line_start_index
         self.char_end_in_file = -1
         self.appears_successful = True
@@ -70,22 +71,6 @@ class FunctionCall:
             this_line_content = t[self.char_start_first_line:].strip() if i == 0 else t.strip()
             skip_first_line_to_call_start.append(this_line_content)
         return [x.strip() for x in skip_first_line_to_call_start]
-
-    def as_new_version(self) -> str:
-        """
-        This function will provide the modified version of a single function call.  Right now this
-        function simply rewrites the function call as a single line with no functional change.
-        The advantage of this is that we can verify our parsing by simply rewriting all function calls
-        in the source code, reapplying Clang Format, and making sure we didn't break anything.
-        In the future, this function will utilize action-specific functionality to manipulate the
-        function call in more meaningful ways.  There will likely be a callback function on the
-        action/Refactor class that takes a function name and argument list and returns the modified
-        version.
-
-        :return: A string representation of the function call after changes have been applied.
-        """
-        args = ', '.join(self.parse_arguments())
-        return f"{self.function_name}({args});"
 
     def parse_arguments(self) -> list[str]:
         """
@@ -172,13 +157,15 @@ class FunctionCall:
                 current_arg += c
         return [a.strip() for a in args]
 
-    def summary(self) -> dict:
-        return {
-            'type': self.call_type, 'line_start': self.starting_line_number,
-            'line_end': self.ending_line_number, 'args': self.parse_arguments()
-        }
-
     def __str__(self):
         """String representation summary of the function call"""
         single_line = ''.join(self.as_cleaned_multiline()).strip()
         return f"{self.starting_line_number} - {self.ending_line_number} : {single_line[:35]}"
+
+    def rewrite(self) -> str:
+        """
+        Rewrite the function call as a string, functionally equivalent to the original form, but modified with
+        line breaks and such missing.
+        """
+        args = ', '.join(self.parse_arguments())
+        return f"{self.function_name}({args});"

@@ -6,17 +6,21 @@ from energyplus_refactor_helper.function_call import FunctionCall
 
 
 class SourceFile:
-    """
-    This class represents a single source code file, processing it to find all matching function calls, and
-    providing functionality to refactor them into a new form automatically.
-    """
 
-    def __init__(self, path: Path, function_call_list: list[str]):
+    def __init__(self, path: Path, function_calls: list[str]):
+        """
+        This class represents a single source code file, processing it to find all matching function calls, and
+        providing functionality to refactor them into a new form automatically.
+
+        :param path: The Path instance pointing to this source file
+        :param function_calls: The list of function calls currently being searched
+        """
         self.path = path
-        self.functions = function_call_list
+        self.functions = function_calls
         self.original_file_text = self.path.read_text()
         self.file_lines = self.original_file_text.split('\n')
         self.found_functions = self.find_functions_in_original_text()
+        self.found_function_groups = self.get_function_call_groups()
         self.function_distribution = self.get_binary_function_distribution()
         self.advanced_function_distribution = self.get_advanced_function_distribution()
 
@@ -117,25 +121,47 @@ class SourceFile:
                 line_values[line_num] = max(line_values[line_num], fe.call_type)
         return line_values
 
-    def get_new_file_text(self) -> str:
+    def get_new_file_text_function_based(self, func_visitor) -> str:
         """
         Modifies the original file text, replacing every function call with the modified version.
 
         :return: Returns the modified source code as a Python string.
         """
         new_text = self.original_file_text
-        for fe in reversed(self.found_functions):
-            new_text = new_text[:fe.char_start_in_file] + fe.as_new_version() + new_text[fe.char_end_in_file + 1:]
+        for fc in reversed(self.found_functions):
+            new_text = new_text[:fc.char_start_in_file] + func_visitor(fc) + new_text[fc.char_end_in_file + 1:]
         return new_text
 
-    def write_new_text_to_file(self) -> None:
+    def get_new_file_text_group_based(self, group_visitor) -> str:
+        """
+        Modifies the original file text, replacing every function call group with the modified version.
+
+        :return: Returns the modified source code as a Python string.
+        """
+        # TODO: Add a unit test that works on function call groups
+        # TODO: Just create dummy RefactorBase-d test action classes that we use in all the unit tests
+        new_text = self.original_file_text
+        for fg in reversed(self.found_function_groups):
+            first = fg.function_calls[0]
+            last = fg.function_calls[-1]
+            new_text = new_text[:first.char_start_in_file] + group_visitor(fg) + new_text[last.char_end_in_file + 1:]
+        return new_text
+
+    def write_new_text_to_file(self, visitor, operate_on_group: bool) -> None:
         """
         Overwrites existing file contents with the modified version, replacing each function call with the new version
         as defined by the action instance itself.
 
+        :param visitor: A callable function that takes either a FunctionCall or a FunctionCallInstance and returns a
+                        string.  The type should depend on the group_flag argument.
+        :param operate_on_group: A flag indicating whether the action will operate on groups of function calls (if True)
+                                 or individual function calls (if False)
         :return: None
         """
-        self.path.write_text(self.get_new_file_text())
+        if operate_on_group:
+            self.path.write_text(self.get_new_file_text_group_based(visitor))
+        else:
+            self.path.write_text(self.get_new_file_text_function_based(visitor))
 
     def get_function_call_groups(self) -> list[FunctionCallGroup]:
         """
@@ -149,15 +175,14 @@ class SourceFile:
         group = FunctionCallGroup()
         last_call_index = len(self.found_functions) - 1
         for i, f in enumerate(self.found_functions):
-            this_single_call = f.summary()
             if f.starting_line_number == last_call_ended_on_line_number + 1:
-                group.add_function_call(this_single_call)
+                group.add_function_call(f)
                 if i == last_call_index:
                     all_args_for_file.append(group)
             else:
                 if group.started:
                     all_args_for_file.append(group)
-                group = FunctionCallGroup(this_single_call)  # reset the list starting with the current one
+                group = FunctionCallGroup(f)  # reset the list starting with the current one
                 if i == last_call_index:  # this is the last error, add it to the list before leaving
                     all_args_for_file.append(group)
             last_call_ended_on_line_number = f.ending_line_number

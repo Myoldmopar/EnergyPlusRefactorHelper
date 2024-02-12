@@ -45,12 +45,18 @@ def run(args: list[str]) -> int:
         default=False,
         help='If True, make changes in place in the source directory'
     )
+    parser.add_argument(
+        '--skip-plots', '-s',
+        action='store_true',
+        default=False,
+        help='If True, skip making the plot, which can take a long time'
+    )
     args = parser.parse_args(args=args)
     source_repo = Path(args.source_repository)
     output_path = Path(args.output_directory)
     action_class = all_actions[args.action_to_run]
     action_instance = action_class()
-    return action_instance.run(source_repo, output_path, args.in_place)
+    return action_instance.run(source_repo, output_path, args.in_place, args.skip_plots)
 
 
 def run_cli() -> int:  # pragma: no cover

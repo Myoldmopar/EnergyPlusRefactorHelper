@@ -264,11 +264,11 @@ class ErrorCallRefactor(RefactorBase):
                 if counter % 200 == 0:
                     logger.terminal_progress_bar(counter, expected_comparison_count, (i, j))
         logger.terminal_progress_done()
-        with open('/tmp/output.txt', 'w') as f:
-            for i, compare in enumerate(sorted(compares, key=lambda x: x[2], reverse=True)):
-                if i > 10000:
-                    break
-                f.write(f"{compare[0]} 😊 {compare[1]} 😊 {compare[2]}\n")
+        # with open('/tmp/output.txt', 'w') as f:
+        #     for i, compare in enumerate(sorted(compares, key=lambda x: x[2], reverse=True)):
+        #         if i > 10000:
+        #             break
+        #         f.write(f"{compare[0]} 😊 {compare[1]} 😊 {compare[2]}\n")
         source_folder.generate_reports(processed_source_files, output_path, skip_plots=skip_plots)
         if edit_in_place:
             source_folder.rewrite_files_in_place(processed_source_files, self.visitor, self.visits_each_group())

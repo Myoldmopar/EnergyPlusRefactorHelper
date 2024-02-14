@@ -13,7 +13,7 @@ funcs = ['ShowSevereError', 'ShowContinueError', 'ShowFatalError', 'ShowWarningE
 def test_basic_operation():
     sf = SourceFile(test_file, funcs)
     sf.find_functions_in_original_text()
-    assert len(sf.found_functions) == 9
+    assert len(sf.found_functions) == 10
 
 
 def test_complex_ish_file():

@@ -27,7 +27,8 @@ def test_error_call_visitor():
     ]
     group = FunctionCallGroup()
     [group.add_function_call(f) for f in fcs]
-    expected_text = 'emitErrorMessages(s, -999, {"Black", "then", "white are", "all I see"}, true);'
+    # *** NOTE that this is actually matching with the trained error code, so if we change error codes, this will change
+    expected_text = 'emitErrorMessages(s, 1350, {"Black", "then", "white are", "all I see"}, true);'
     resulting_text = ecr.visitor(group)
     assert expected_text == resulting_text
     # Test with preceding text
@@ -55,7 +56,7 @@ def test_error_call_visitor():
     ]
     group = FunctionCallGroup()
     [group.add_function_call(f) for f in fcs]
-    expected_text = 'emitErrorMessage(s, -999, "Foo", false);'
+    expected_text = 'emitErrorMessage(s, 1000, "Foo", false);'
     resulting_text = ecr.visitor(group)
     assert expected_text == resulting_text
     # now just a single standalone fatal
@@ -64,6 +65,6 @@ def test_error_call_visitor():
     ]
     group = FunctionCallGroup()
     [group.add_function_call(f) for f in fcs]
-    expected_text = 'emitErrorMessage(s, -999, "Foo", true);'
+    expected_text = 'emitErrorMessage(s, 3000, "Foo", true);'
     resulting_text = ecr.visitor(group)
     assert expected_text == resulting_text

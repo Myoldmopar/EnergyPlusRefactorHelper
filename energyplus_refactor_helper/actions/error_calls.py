@@ -96,23 +96,25 @@ class ErrorCallRefactor(RefactorBase):
             argument_listing = "{" + ", ".join(remaining_arguments) + "}"
             # regroup the errors into a single function call, with a default error code for now
             if starts_with_severe and valid_middle and ends_with_fatal:
-                return f"emitErrorMessages({state}, -999, {argument_listing}, true);"
+                result = f"emitErrorMessages({state}, ERR_CODE_PH, {argument_listing}, true);"
             elif starts_with_severe and valid_middle and ends_with_continue:
-                return f"emitErrorMessages({state}, -999, {argument_listing}, false);"
+                result = f"emitErrorMessages({state}, ERR_CODE_PH, {argument_listing}, false);"
             elif starts_with_warning and valid_middle and ends_with_continue:
-                return f"emitWarningMessages({state}, -999, {argument_listing});"
+                result = f"emitWarningMessages({state}, ERR_CODE_PH, {argument_listing});"
             elif starts_with_warning_error and valid_middle and ends_with_continue:
-                return f"emitWarningMessages({state}, -999, {argument_listing}, true);"
+                result = f"emitWarningMessages({state}, ERR_CODE_PH, {argument_listing}, true);"
             elif one_liner and starts_with_warning:
-                return f"emitWarningMessage({state}, -999, {argument_one});"
+                result = f"emitWarningMessage({state}, ERR_CODE_PH, {argument_one});"
             elif one_liner and starts_with_warning_error:
-                return f"emitWarningMessage({state}, -999, {argument_one}, true);"
+                result = f"emitWarningMessage({state}, ERR_CODE_PH, {argument_one}, true);"
             elif one_liner and starts_with_severe:
-                return f"emitErrorMessage({state}, -999, {argument_one}, false);"
+                result = f"emitErrorMessage({state}, ERR_CODE_PH, {argument_one}, false);"
             elif one_liner and starts_with_fatal:
-                return f"emitErrorMessage({state}, -999, {argument_one}, true);"
+                result = f"emitErrorMessage({state}, ERR_CODE_PH, {argument_one}, true);"
             else:
-                return RefactorBase.base_function_group_visitor(function_group)
+                result = RefactorBase.base_function_group_visitor(function_group)
+            err_code_replacement = '-999'
+            return result.replace('ERR_CODE_PH', err_code_replacement)
 
     def run(self, source_repo: Path, output_path: Path, edit_in_place: bool, skip_plots: bool) -> int:
         """This method performs the actual run operations based on input arguments for the error call action.
@@ -136,15 +138,16 @@ class ErrorCallRefactor(RefactorBase):
             for group in source_file.found_function_groups:
                 new_group_text = self.visitor(group)
                 error_message_texts.append(new_group_text.replace('\n', ' '))
-        logger.log("About to determine text similarities between messages (usually ~20+ minutes)")
         nlp = spacy.load("en_core_web_md")
         encounters = set()
         compares = set()
+        logger.log("Generating SpaCy text structures (usually ~20 seconds)")
         docs = list(nlp.pipe(error_message_texts))
         n = len(docs)
         expected_comparison_count = (n * n - n) / 2
         counter = 0
         start_time = time()
+        logger.log("About to determine text similarities between messages (usually ~20+ minutes)")
         for i, d1 in enumerate(docs):
             for j, d2 in enumerate(docs):
                 if i == j or (i, j) in encounters or (j, i) in encounters:

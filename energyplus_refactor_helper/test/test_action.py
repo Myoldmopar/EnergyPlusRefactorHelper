@@ -46,7 +46,7 @@ def test_error_call_visitor():
     ]
     group = FunctionCallGroup()
     [group.add_function_call(f) for f in fcs]
-    expected_text = 'emitWarningMessage(s, -999, "Foo");'
+    expected_text = 'emitWarningMessage(s, -999, "Foo", true);'
     resulting_text = ecr.visitor(group)
     assert expected_text == resulting_text
     # now just a standalone severe

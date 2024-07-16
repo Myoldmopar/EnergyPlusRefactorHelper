@@ -40,7 +40,26 @@ def test_error_call_visitor():
     expected_text = 'ShowSevereError(s, "Foo");\nHi;ShowFatalError(s, "bar");'
     resulting_text = ecr.visitor(group)
     assert expected_text == resulting_text
+    # a multi-call warning
+    fcs = [
+        FunctionCall(s.ShowWarningMessage, 'ShowWarningMessage', 1, 0, 0, 'ShowWarningMessage(s, "Hello");'),
+        FunctionCall(s.ShowContinueError, 'ShowContinueError', 1, 0, 0, 'ShowContinueError(s, "world");'),
+    ]
+    group = FunctionCallGroup()
+    [group.add_function_call(f) for f in fcs]
+    expected_text = 'emitWarningMessages(s, -999, {"Hello", "world"});'
+    resulting_text = ecr.visitor(group)
+    assert expected_text == resulting_text
     # now just a standalone warning
+    fcs = [
+        FunctionCall(s.ShowWarningMessage, 'ShowWarningMessage', 1, 0, 0, 'ShowWarningMessage(s, "Foo");'),
+    ]
+    group = FunctionCallGroup()
+    [group.add_function_call(f) for f in fcs]
+    expected_text = 'emitWarningMessage(s, -999, "Foo");'
+    resulting_text = ecr.visitor(group)
+    assert expected_text == resulting_text
+    # now just a standalone warning error
     fcs = [
         FunctionCall(s.ShowWarningError, 'ShowWarningError', 1, 0, 0, 'ShowWarningError(s, "Foo");'),
     ]

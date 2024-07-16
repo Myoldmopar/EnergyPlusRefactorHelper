@@ -1,3 +1,4 @@
+from os import environ
 from pathlib import Path
 from time import time
 
@@ -135,6 +136,7 @@ class ErrorCallRefactor(RefactorBase):
             for group in source_file.found_function_groups:
                 new_group_text = self.visitor(group)
                 error_message_texts.append(new_group_text.replace('\n', ' '))
+        logger.log("About to determine text similarities between messages (usually ~20+ minutes)")
         nlp = spacy.load("en_core_web_md")
         encounters = set()
         compares = set()
@@ -143,7 +145,6 @@ class ErrorCallRefactor(RefactorBase):
         expected_comparison_count = (n * n - n) / 2
         counter = 0
         start_time = time()
-        logger.log("About to determine text similarities between messages (usually ~20+ minutes)")
         for i, d1 in enumerate(docs):
             for j, d2 in enumerate(docs):
                 if i == j or (i, j) in encounters or (j, i) in encounters:
@@ -155,19 +156,21 @@ class ErrorCallRefactor(RefactorBase):
                     elapsed_time = time() - start_time
                     estimated_total_time = (elapsed_time / (counter + 1)) * expected_comparison_count
                     estimated_seconds_remaining = estimated_total_time - elapsed_time
-                    estimated_time = f"Estimated time remaining: {estimated_seconds_remaining:.2f}s"
+                    estimated_time = f"Estimated time remaining: {estimated_seconds_remaining:.1f}s"
                     if estimated_seconds_remaining >= 60:
                         minutes = int(estimated_seconds_remaining // 60)
                         remaining_seconds = estimated_seconds_remaining % 60
-                        estimated_time = f"Estimated time remaining: {minutes}m {remaining_seconds:.2f}s"
+                        estimated_time = f"Estimated time remaining: {minutes}m {remaining_seconds:.1f}s"
                     logger.terminal_progress_bar(counter, expected_comparison_count, estimated_time)
         logger.terminal_progress_done()
         comparison_file_path = output_path / 'comparisons.txt'
-        with comparison_file_path.open('w') as f:
-            for i, compare in enumerate(sorted(compares, key=lambda x: x[2], reverse=True)):
-                if i > 10000:  # pragma: no cover
-                    break
-                f.write(f"{compare[0]} 😊 {compare[1]} 😊 {compare[2]}\n")
+        # don't do this on CI
+        if 'CI' not in environ:  # pragma: no cover
+            with comparison_file_path.open('w') as f:
+                for i, compare in enumerate(sorted(compares, key=lambda x: x[2], reverse=True)):
+                    if i > 10000:  # pragma: no cover
+                        break
+                    f.write(f"{compare[0]} 😊 {compare[1]} 😊 {compare[2]}\n")
         source_folder.generate_reports(processed_source_files, output_path, skip_plots=skip_plots)
         if edit_in_place:  # pragma: no cover
             # the rewrite files in place method is already being tested, not including it in coverage here

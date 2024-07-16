@@ -56,7 +56,7 @@ class SourceFolder:
         :param matched_files: A list of Path instances to all matched source files to be processed here
         :return: Returns a list of SourceFile instances which have been parsed for function calls.
         """
-        logger.log("Processing files to identify function calls (usually ~30 seconds)")
+        logger.log("Processing files to identify function calls (usually ~15 seconds)")
         processed_files = []
         for file_num, source_file in enumerate(sorted(matched_files)):
             processed_files.append(SourceFile(source_file, self.function_call_list))

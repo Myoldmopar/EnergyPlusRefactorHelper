@@ -1,5 +1,7 @@
 from itertools import zip_longest
 from json import dumps
+
+import matplotlib.pyplot
 import matplotlib.pyplot as plt
 from pathlib import Path
 from typing import Optional
@@ -175,7 +177,9 @@ class SourceFolder:
         file_names = [x.path.name for x in processed_files]
         data = [x.advanced_function_distribution for x in processed_files]
         num_data_sets = len(data)
-        fig, axes = plt.subplots(num_data_sets, 1, layout='constrained')
+        plot_data = plt.subplots(num_data_sets, 1, layout='constrained')
+        fig: matplotlib.pyplot.Figure = plot_data[0]
+        axes: list[matplotlib.pyplot.axes] = plot_data[1]
         fig.set_size_inches(8, int(num_data_sets / 2))
         plot_num = -1
         for data_num, distribution in enumerate(data):

@@ -43,7 +43,7 @@ class SourceFile:
     def find_functions_in_original_text(self) -> list[FunctionCall]:
         """
         Processes the original source code for this file, identifying all function calls.
-        This function fills an array with FunctionCall objects for each function call processed.
+        This function returns an array of FunctionCall objects for each function call processed.
 
         :return: A list of FunctionCall instances, one for each function call processed.
         """

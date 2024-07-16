@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 from sys import argv, exit
 from pathlib import Path
 
-from energyplus_refactor_helper.action import all_actions
+from energyplus_refactor_helper.actions.listing import all_actions
 
 
 def run(args: list[str]) -> int:
@@ -19,7 +19,7 @@ def run(args: list[str]) -> int:
         prog='ErrorRefactorHelper',
         description='Provides parsing, analysis, and refactoring services for EnergyPlus code',
         epilog='This may be expanded to provide additional services',
-        formatter_class=lambda prog: argparse.HelpFormatter(prog, width=150)
+        formatter_class=lambda prog: argparse.HelpFormatter(prog, width=160)
     )
     valid_action_keys = all_actions.keys()
     parser.add_argument(

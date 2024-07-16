@@ -1,38 +1,11 @@
-# this file will include an abstract base class for any specific refactor
-# it will, for now, also include any example refactor configs
 from pathlib import Path
-from typing import Type
+from time import time
 
 import spacy
 
 from energyplus_refactor_helper.logger import logger
 from energyplus_refactor_helper.source_folder import SourceFolder
-
-
-class RefactorBase:
-    @staticmethod
-    def base_function_call_visitor(function_call) -> str:
-        """
-        This is a small helper function that simply takes a function call argument, and rewrites it in a functionally
-        equivalent manner, returning that string.
-
-        :param function_call: The FunctionCall instance to operate on
-        ;return str: The function call in a functionally equivalent string
-        """
-        return function_call.rewrite()
-
-    @staticmethod
-    def base_function_group_visitor(function_group) -> str:
-        individual_call_strings = []
-        for i, function in enumerate(function_group.function_calls):
-            full_call = function.rewrite()
-            include_prefix = len(function_group.function_calls) > 0 and i > 0
-            including_prefix = (function.preceding_text + full_call) if include_prefix else full_call
-            individual_call_strings.append(including_prefix)
-        return '\n'.join(individual_call_strings)
-
-    def run(self, source_repo: Path, output_path: Path, edit_in_place: bool, skip_plots: bool) -> int:
-        raise NotImplementedError()
+from energyplus_refactor_helper.actions.base import RefactorBase
 
 
 class ErrorCallRefactor(RefactorBase):
@@ -169,6 +142,7 @@ class ErrorCallRefactor(RefactorBase):
         n = len(docs)
         expected_comparison_count = (n * n - n) / 2
         counter = 0
+        start_time = time()
         logger.log("About to determine text similarities between messages (usually ~20+ minutes)")
         for i, d1 in enumerate(docs):
             for j, d2 in enumerate(docs):
@@ -178,20 +152,24 @@ class ErrorCallRefactor(RefactorBase):
                 compares.add((d1.text, d2.text, d1.similarity(d2)))
                 counter += 1
                 if counter % 200 == 0:  # pragma: no cover
-                    logger.terminal_progress_bar(counter, expected_comparison_count, (i, j))
+                    elapsed_time = time() - start_time
+                    estimated_total_time = (elapsed_time / (counter + 1)) * expected_comparison_count
+                    estimated_seconds_remaining = estimated_total_time - elapsed_time
+                    estimated_time = f"Estimated time remaining: {estimated_seconds_remaining:.2f}s"
+                    if estimated_seconds_remaining >= 60:
+                        minutes = int(estimated_seconds_remaining // 60)
+                        remaining_seconds = estimated_seconds_remaining % 60
+                        estimated_time = f"Estimated time remaining: {minutes}m {remaining_seconds:.2f}s"
+                    logger.terminal_progress_bar(counter, expected_comparison_count, estimated_time)
         logger.terminal_progress_done()
-        # with open('/tmp/output.txt', 'w') as f:
-        #     for i, compare in enumerate(sorted(compares, key=lambda x: x[2], reverse=True)):
-        #         if i > 10000:
-        #             break
-        #         f.write(f"{compare[0]} 😊 {compare[1]} 😊 {compare[2]}\n")
+        comparison_file_path = output_path / 'comparisons.txt'
+        with comparison_file_path.open('w') as f:
+            for i, compare in enumerate(sorted(compares, key=lambda x: x[2], reverse=True)):
+                if i > 10000:  # pragma: no cover
+                    break
+                f.write(f"{compare[0]} 😊 {compare[1]} 😊 {compare[2]}\n")
         source_folder.generate_reports(processed_source_files, output_path, skip_plots=skip_plots)
         if edit_in_place:  # pragma: no cover
             # the rewrite files in place method is already being tested, not including it in coverage here
             source_folder.rewrite_files_in_place(processed_source_files, self.visitor, True)
         return 0 if source_folder.success else 1
-
-
-all_actions: dict[str, Type[RefactorBase]] = {
-    'error_call_refactor': ErrorCallRefactor
-}

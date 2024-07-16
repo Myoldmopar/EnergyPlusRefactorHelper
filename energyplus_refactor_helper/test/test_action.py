@@ -2,7 +2,8 @@ from pathlib import Path
 
 from pytest import raises
 
-from energyplus_refactor_helper.action import RefactorBase, ErrorCallRefactor
+from energyplus_refactor_helper.actions.base import RefactorBase
+from energyplus_refactor_helper.actions.error_calls import ErrorCallRefactor
 from energyplus_refactor_helper.function_call import FunctionCall
 from energyplus_refactor_helper.function_call_group import FunctionCallGroup
 

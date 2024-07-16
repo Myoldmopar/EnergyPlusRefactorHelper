@@ -8,7 +8,7 @@ readme_contents = readme_file.read_text()
 setup(
     name=PACKAGE_NAME,
     version=VERSION,
-    packages=[PACKAGE_NAME],
+    packages=[PACKAGE_NAME, f"{PACKAGE_NAME}.actions"],
     description="An EnergyPlus-specific set of tools that help analyze & refactor EnergyPlus code",
     package_data={},
     include_package_data=False,

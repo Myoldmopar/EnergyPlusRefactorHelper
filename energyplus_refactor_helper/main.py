@@ -27,7 +27,7 @@ def run(args: list[str]) -> int:
         action='store',
         type=str,
         choices=valid_action_keys,
-        help='Action to run, see the list of valid options'
+        help='Action to run, this is the list of valid options'
     )
     parser.add_argument(
         'source_repository',
@@ -79,4 +79,5 @@ def show_usage() -> None:
 
 
 if __name__ == '__main__':  # pragma: no cover
+    # show_usage()
     exit(run_cli())

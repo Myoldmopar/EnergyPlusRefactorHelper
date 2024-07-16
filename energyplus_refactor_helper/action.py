@@ -47,6 +47,7 @@ class ErrorCallRefactor(RefactorBase):
         ShowSevereMessage = 2
         ShowContinueError = 3
         ShowWarningError = 6
+        ShowWarningMessage = 7
 
     @staticmethod
     def function_calls() -> list[str]:
@@ -107,7 +108,8 @@ class ErrorCallRefactor(RefactorBase):
             # Look for specific opportunities to refactor.  Let's start with a severe + [N>=0 continue error] + fatal.
             starts_with_fatal = first_call.call_type == self.CallSymbols.ShowFatalError
             starts_with_severe = first_call.call_type == self.CallSymbols.ShowSevereError
-            starts_with_warning = first_call.call_type == self.CallSymbols.ShowWarningError
+            starts_with_warning = first_call.call_type == self.CallSymbols.ShowWarningMessage
+            starts_with_warning_error = first_call.call_type == self.CallSymbols.ShowWarningError
             ends_with_fatal = last_call.call_type == self.CallSymbols.ShowFatalError
             ends_with_continue = last_call.call_type == self.CallSymbols.ShowContinueError
             if len(function_group.function_calls) <= 2:
@@ -125,8 +127,12 @@ class ErrorCallRefactor(RefactorBase):
                 return f"emitErrorMessages({state}, -999, {argument_listing}, false);"
             elif starts_with_warning and valid_middle and ends_with_continue:
                 return f"emitWarningMessages({state}, -999, {argument_listing});"
+            elif starts_with_warning_error and valid_middle and ends_with_continue:
+                return f"emitWarningMessages({state}, -999, {argument_listing}, true);"
             elif one_liner and starts_with_warning:
                 return f"emitWarningMessage({state}, -999, {argument_one});"
+            elif one_liner and starts_with_warning_error:
+                return f"emitWarningMessage({state}, -999, {argument_one}, true);"
             elif one_liner and starts_with_severe:
                 return f"emitErrorMessage({state}, -999, {argument_one}, false);"
             elif one_liner and starts_with_fatal:
@@ -163,7 +169,7 @@ class ErrorCallRefactor(RefactorBase):
         n = len(docs)
         expected_comparison_count = (n * n - n) / 2
         counter = 0
-        logger.log("About to determine text similarities between messages")
+        logger.log("About to determine text similarities between messages (usually ~20+ minutes)")
         for i, d1 in enumerate(docs):
             for j, d2 in enumerate(docs):
                 if i == j or (i, j) in encounters or (j, i) in encounters:

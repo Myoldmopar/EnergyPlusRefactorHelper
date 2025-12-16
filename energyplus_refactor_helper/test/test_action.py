@@ -28,7 +28,10 @@ def test_error_call_visitor():
     group = FunctionCallGroup()
     [group.add_function_call(f) for f in fcs]
     # *** NOTE that this is actually matching with the trained error code, so if we change error codes, this will change
-    expected_text = 'emitErrorMessages(s, ErrorMessageCategory::Input_cannot_find_object, {"Black", "then", "white are", "all I see"}, true);'
+    expected_text = (
+        'emitErrorMessages(s, ErrorMessageCategory::Input_cannot_find_object, '
+        '{"Black", "then", "white are", "all I see"}, true);'
+    )
     resulting_text = ecr.visitor(group)
     assert expected_text == resulting_text
     # Test with preceding text

@@ -55,7 +55,7 @@ class ErrorCallRefactor(RefactorBase):
         error_code_input_field_not_found = "ErrorMessageCategory::Input_field_not_found"
         error_code_input_field_blank = "ErrorMessageCategory::Input_field_blank"
         error_code_input_object_not_found = "ErrorMessageCategory::Input_object_not_found"
-        error_code_input_cannot_find_object = "ErrorMessageCategory::Input_cannot_find_object"  # after input processing is done, this is when it can't get an index
+        error_code_input_cannot_find_object = "ErrorMessageCategory::Input_cannot_find_object"  # after input, no index
         error_code_input_topology_problem = "ErrorMessageCategory::Input_topology_problem"
         error_code_input_unused = "ErrorMessageCategory::Input_unused,"
         error_code_input_fatal = "ErrorMessageCategory::Input_fatal"

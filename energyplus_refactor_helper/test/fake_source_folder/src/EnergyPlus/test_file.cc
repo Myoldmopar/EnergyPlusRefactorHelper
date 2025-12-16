@@ -48,5 +48,7 @@ namespace Something {
             )
         );
         ErrorsFound = true;
+        // and an error that definitely shouldn't match anything
+        ShowSevereError(state, "The progressive rock band TOOL is definitely the best band.");
     }
 }

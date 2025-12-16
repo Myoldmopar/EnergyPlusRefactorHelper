@@ -1,0 +1,288 @@
+{
+  "known_error_codes": [
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"{}=\"{}\" invalid range {}=\"{}\"\",cCurrentModuleObject,state.dataIPShortCut->cAlphaArgs(1),state.dataIPShortCut->cAlphaFieldNames(4),state.dataIPShortCut->cAlphaArgs(4)), \"..contains values outside of range [0,2000 ppm].\"}, false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"{}{}=\"{}, object. Illegal value for {} has been found.\",RoutineName,cCurrentModuleObject,state.dataIPShortCut->cAlphaArgs(1),state.dataIPShortCut->cNumericFieldNames(6)), format(\"{} must be >= 0 or <= 1, entered value = {:.2R}\",state.dataIPShortCut->cNumericFieldNames(6),state.dataIPShortCut->rNumericArgs(6))}, false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"Invalid {} = {}\", state.dataIPShortCut->cAlphaFieldNames(7), state.dataIPShortCut->cAlphaArgs(7)), format(\"Entered in {} = {}\", state.dataIPShortCut->cCurrentModuleObject, thisWEq.Name)}, false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitWarningMessage(state, -999, format(\"{}: Invalid input of {}. The default choice is assigned = NO\",state.dataHeatBalMgr->CurrentModuleObject,state.dataIPShortCut->cAlphaFieldNames(1)));",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"GetCoilAirFlowRateVariableSpeed: Could not find CoilType=\"{}\" with Name=\"{}\"\", CoilType, CoilName), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"{}{}=\"{}\"\", RoutineName, CurrentModuleObject, WalkIn(WalkInID).Name), format(\"Error found in {} = {}\", cAlphaFieldNames(AlphaNum), Alphas(AlphaNum)), \"schedule values must be (>=0., <=1.)\"}, false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"{}{}=\"{}\", {}, maximum is < 0.0\", RoutineName, elecEqModuleObject, IHGAlphas(1), IHGAlphaFieldNames(3)), format(\"Schedule=\"{}\". Maximum is [{:.1R}]. Values must be >= 0.0.\", IHGAlphas(3), SchMax)}, false); \ud83d\ude0a emitErrorMessages(state, -999, {format(\"{}{}=\"{}\", {}, maximum is < 0.0\", RoutineName, contamSSModuleObject, IHGAlphas(1), IHGAlphaFieldNames(3)), format(\"Schedule=\"{}\". Maximum is [{:.1R}]. Values must be >= 0.0.\", IHGAlphas(3), SchMax)}, false); \ud83d\ude0a 1.0000000761785992",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}{} statement = {} must have {} between -100C and 100C\",RoutineName,cCurrentModuleObject,cAlphaArgs(1),cNumericFieldNames(14)), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{} = \"{}\" invalid {} = \"{}\" not found.\", cFaultCurrentObject, cAlphaArgs(1), cAlphaFieldNames(6), cAlphaArgs(6)), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"{}{}=\"{}\", invalid entry.\", RoutineName, cCurrentModuleObject, cAlphaArgs(1)), format(\"Missing entry for {}\", cAlphaFieldNames(9))}, false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"GetCoilAirFlowRateVariableSpeed: Could not find CoilType=\"{}\" with Name=\"{}\"\", CoilType, CoilName), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"GetCurveInput: For {}: \", CurrentModuleObject), format(\"{} [{:.R2}] > {} [{.R2}]\",state.dataIPShortCut->cNumericFieldNames(9),Numbers(9),state.dataIPShortCut->cNumericFieldNames(10),Numbers(10))}, false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"{}=\"{}\", invalid Air Loop specified:\",cSetPointManagerType,state.dataSetPointManager->WarmestSetPtMgr(SetPtMgrNum).Name), format(\"Air Loop not found =\"{}\".\", state.dataSetPointManager->WarmestSetPtMgr(SetPtMgrNum).AirLoopName)}, false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}=\"{}\" invalid {}=[{:.0R}] must be greater than zero.\",CurrentModuleObject,state.dataIPShortCut->cAlphaArgs(1),cNumericFields(4),rNumericArgs(4)), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}{}=\"{}\", invalid {}, value  [<0.0]={:.3R}\",RoutineName,stmEqModuleObject,IHGAlphas(1),IHGNumericFieldNames(3),IHGNumbers(3)), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}{}=\"{}\", {} not found=\"{}\".\",RoutineName,cCurrentModuleObject,cAlphaArgs(1),cAlphaFieldNames(8),cAlphaArgs(8)), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}=\"{}\" invalid {}=\"{}\" not found.\", CurrentModuleObject, AlphArray(1), cAlphaFields(8), AlphArray(8)), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitWarningMessages(state, -999, {format(\"{}{}=\"{}\", {} was lower than the allowable minimum.\",RoutineName,cCMO_CoolingPanel_Simple,state.dataIPShortCut->cAlphaArgs(1),state.dataIPShortCut->cNumericFieldNames(11)), format(\"...reset to minimum value=[{:.3R}].\", MinFraction)});",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}{}=\"{}\", invalid {} entered=\"{}\".\",RoutineName,peopleModuleObject,IHGAlphas(1),IHGAlphaFieldNames(11),IHGAlphas(11)), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}=\"{}\", invalid {}=\"{}\".\",cCurrentModuleObject,state.dataSurfaceGeometry->SurfaceTmp(SurfNum).Name,state.dataIPShortCut->cAlphaFieldNames(3),state.dataIPShortCut->cAlphaArgs(3)), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"{}{}=\"{}\", invalid\", RoutineName, CurrentModuleObject, thisDXCoil.Name), format(\"...not found {}=\"{}\".\", cAlphaFields(14 + (I - 1) * 6), Alphas(14 + (I - 1) * 6))}, false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitWarningMessages(state, -999, {format(\"{}{}=\"{}\", invalid\", RoutineName, CurrentModuleObject, thisDXCoil.Name), format(\"...{} = {} has out of range value.\", cAlphaFields(9), Alphas(9)), format(\"...Curve maximum must be <= 1.0, curve max at PLR = {:.2T} is {:.3T}\", MaxCurvePLR, MaxCurveVal), \"...Setting curve maximum to 1.0 and simulation continues.\"});",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitWarningMessages(state, -999, {format(\"{}{}=\"{}\", curve values\",RoutineName,CurrentModuleObject,state.dataVariableSpeedCoils->VarSpeedCoil(DXCoilNum).Name), format(\"...{} output is not equal to 1.0 (+ or - 10%) at rated conditions.\", cAlphaFields(11)), format(\"...Curve output at rated conditions = {:.3T}\", CurveVal)});",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessages(m_state, -999, {format(RoutineName) + CurrentModuleObject + \" object, \" + cAlphaFields(6) +\" not found = \" + OccupantVentilationControl(i).ClosingProbSchName, \"..for specified \" + cAlphaFields(1) + \" = \" + Alphas(1)}, false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}{}=\"{}\", {} must be input \", RoutineName, CurrentModuleObject, WalkIn(WalkInID).Name, cNumericFieldNames(2)), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"{}=\"{}\", invalid Air Loop specified:\",cSetPointManagerType,state.dataSetPointManager->WarmestSetPtMgrTempFlow(SetPtMgrNum).Name), format(\"Air Loop not found =\"{}\".\", state.dataSetPointManager->WarmestSetPtMgrTempFlow(SetPtMgrNum).AirLoopName)}, false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitWarningMessage(state, -999, format(\"{} {}=\"{}\" is defined as an R-only value material.\", cHAMTObject2, cAlphaFieldNames(1), AlphaArray(1)));",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"{}=\"{}\", no AirLoopHVAC objects found:\",cSetPointManagerType,state.dataSetPointManager->RABFlowSetPtMgr(SetPtMgrNum).Name), \"Setpoint Manager needs an AirLoopHVAC to operate.\"}, false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}{}=\"{}\", invalid {}, value  [<0.0]={:.3R}\",RoutineName,peopleModuleObject,thisPeople.Name,IHGNumericFieldNames(2),IHGNumbers(2)), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"SimSysAvailManager: AvailabilityManager:ScheduledOff not found: {}\", SysAvailName), true);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}, named {}, PerPerson mode needs positive value input for storage capacity per person\",state.dataIPShortCut->cCurrentModuleObject,state.dataIPShortCut->cAlphaArgs(1)), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}{}=\"{}\", {} is required.\", RoutineName, stmEqModuleObject, thisStmEqInput.Name, IHGAlphaFieldNames(3)), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}{}=\"{}\", {} is required.\", RoutineName, peopleModuleObject, IHGAlphas(1), IHGAlphaFieldNames(3)), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{} = \"{}\", invalid data for \"{}\", entered value <= 0.0, but must be > 0 \",cCurrentModuleObject,AlphArray(1),cNumericFieldNames(3)), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}{}=\"{}\", Sum of Fractions > 1.0\", RoutineName, lightsModuleObject, thisLights.Name), false);",
+      "code": "error_code_input_invalid"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"{}{}=\"{}\", invalid\", RoutineName, cCurrentModuleObject, cAlphaArgs(1)), format(\"not found: {}=\"{}\".\", cAlphaFieldNames(5), cAlphaArgs(5))}, false);",
+      "code": "error_code_input_field_not_found"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"{}{}=\"{}\", invalid\", RoutineName, cCurrentModuleObject, cAlphaArgs(1)), format(\"not found: {}=\"{}\".\", cAlphaFieldNames(5), cAlphaArgs(5))}, false);",
+      "code": "error_code_input_field_not_found"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"{} not found: {}\", cAlphaFields(9), Alphas(9)), format(\"Occurs in {} = {}\", CurrentModuleObject, Alphas(1))}, false);",
+      "code": "error_code_input_field_not_found"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"{}{}=\"{}\"\", RoutineName, state.dataIPShortCut->cCurrentModuleObject, state.dataIPShortCut->cAlphaArgs(1)), format(\"{} is blank.\", state.dataIPShortCut->cAlphaFieldNames(8))}, false);",
+      "code": "error_code_input_field_blank"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"{}{}=\"{}\", missing\", RoutineName, CurrentModuleObject, thisDXCoil.Name), format(\"...required {} is blank.\", cAlphaFields(16 + (I - 1) * 6))}, false);",
+      "code": "error_code_input_field_blank"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}=\"{}\" invalid {} is blank and must be entered.\", CurrentModuleObject, ventSlab.Name, cAlphaFields(20)), false);",
+      "code": "error_code_input_field_blank"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}{}=\"{}\" {} must be specified.\",RoutineName,CurrentModuleObject,Secondary(SecondaryNum).Name,cNumericFieldNames(4)), false);",
+      "code": "error_code_input_field_blank"
+    },
+    {
+      "message": "emitWarningMessage(state, -999, format(\"{}{}=\"{}\", {} specifies {}, but that field is blank.  0 Cross Mixing will result.\",RoutineName,cCurrentModuleObject,thisMixingInput.Name,cAlphaFieldNames(4),cNumericFieldNames(1)));",
+      "code": "error_code_input_field_blank"
+    },
+    {
+      "message": "emitWarningMessage(state, -999, format(\"{}{}=\"{}\", specifies {}, but that field is blank.  0 Lights will result.\",RoutineName,lightsModuleObject,IHGAlphas(1),IHGNumericFieldNames(1)));",
+      "code": "error_code_input_field_blank"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}=\"{}\" invalid {} is required but input is blank.\",CurrentModuleObject,state.dataIPShortCut->cAlphaArgs(1),cNumericFields(8)), false);",
+      "code": "error_code_input_field_blank"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}, GetTESCoilAirInletNode: TES Cooling Coil not found={}\", CurrentModuleObject, CoilName), false);",
+      "code": "error_code_input_object_not_found"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"{}{}=\"{}, object. Referenced Matrix:TwoDimension is missing from the input file.\",RoutineName,locCurrentModuleObject,locAlphaArgs(1)), format(\"Visble back reflectance Matrix:TwoDimension = \"{}\" is missing from the input file.\", locAlphaArgs(9))}, false);",
+      "code": "error_code_input_object_not_found"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"AirLoopHVAC:SupplyPlenum=\"{}\", duplicate entry.\", state.dataZonePlenum->ZoneSupPlenCond(Count1).ZonePlenumName), format(\"already exists on AirLoopHVAC:SupplyPath=\"{}\".\", FoundNames(Count1))}, false);",
+      "code": "error_code_input_topology_problem"
+    },
+    {
+      "message": "emitErrorMessages(state, -999, {format(\"AirLoopHVAC:ReturnPlenum=\"{}\", duplicate entry.\", state.dataZonePlenum->ZoneRetPlenCond(Count1).ZonePlenumName), format(\"already exists on AirLoopHVAC:ReturnPath=\"{}\".\", FoundNames(Count1))}, false);",
+      "code": "error_code_input_topology_problem"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"GetCoilMaxWaterFlowRate: Could not find CoilType=\"{}\" with Name=\"{}\"\", CoilType, CoilName), false);",
+      "code": "error_code_input_cannot_find_object"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"GetInletNodeNum: Could not find EvaporativeCooler = \"{}\"\", EvapCondName), false);",
+      "code": "error_code_input_cannot_find_object"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"GetCoilSteamInletNode: Could not find CoilType=\"{}\" with Name=\"{}\"\", CoilType, CoilName), false);",
+      "code": "error_code_input_cannot_find_object"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"GetCoilWaterInletNode: Could not find Coil, Type=\"{}\" Name=\"{}\"\", CoilType, CoilName), false);",
+      "code": "error_code_input_cannot_find_object"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"GetFanOutletNode: Could not find Fan, Type=\"{}\" Name=\"{}\"\", FanType, FanName), false);",
+      "code": "error_code_input_cannot_find_object"
+    },
+    {
+      "message": "emitWarningMessage(state, -999, format(\"{}: Refrigeration:AirChiller=\"{}\" unused. \", RoutineName, WarehouseCoil(CoilNum).Name));",
+      "code": "error_code_input_unused"
+    },
+    {
+      "message": "emitErrorMessage(m_state, -999, format(\"{}Errors found getting inputs. Previous error(s) cause program termination.\", RoutineName), true);",
+      "code": "error_code_input_fatal"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}Errors found in getting {} input. Preceding condition(s) causes termination.\", RoutineName, CurrentModuleObject), true);",
+      "code": "error_code_input_fatal"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{} = {}:  {} not found = {}\",state.dataIPShortCut->cCurrentModuleObject,state.dataIPShortCut->cAlphaArgs(1),state.dataIPShortCut->cAlphaFieldNames(2),state.dataIPShortCut->cAlphaArgs(2)), false);",
+      "code": "error_code_input_field_not_found"
+    },
+    {
+      "message": "emitWarningMessages(state, -999, {format(\"{} - air flow rate = {:.7T} in {} = {} is less than the \",CurrentModuleObject,thisCBVAV.FanVolFlow,cAlphaFields(11),thisCBVAV.FanName) +cNumericFields(1), format(\" {} is reset to the fan flow rate and the simulation continues.\", cNumericFields(1)), format(\" Occurs in {} = {}\", CurrentModuleObject, thisCBVAV.Name)});",
+      "code": "error_code_runtime_flow_out_of_range"
+    },
+    {
+      "message": "ShowSevereError(state, format(\"CalcElectricEIRChillerModel: Condenser flow = 0, for ElectricEIRChiller={}\", this->Name)); ShowContinueErrorTimeStamp(state, \"\");",
+      "code": "error_code_runtime_flow_out_of_range"
+    },
+    {
+      "message": "emitWarningMessage(state, -999, format(\"{}:\"{}\", {} is less than 2 deg C. Freezing could occur.\",cCurrentModuleObject,tower.Name,state.dataIPShortCut->cNumericFieldNames(26)));",
+      "code": "error_code_runtime_temp_out_of_range"
+    },
+    {
+      "message": "emitWarningMessage(state, -999, format(\"{}:\"{}\", {} is less than 2 deg C. Freezing could occur.\",state.dataIPShortCut->cCurrentModuleObject,thisChiller.Name,state.dataIPShortCut->cNumericFieldNames(30)));",
+      "code": "error_code_runtime_temp_out_of_range"
+    },
+    {
+      "message": "emitErrorMessage(m_state, -999, \"CalcAirflowNetworkMoisBalance: A diagonal entity is zero in AirflowNetwork matrix at node \" +AirflowNetworkNodeData(i).Name, true);",
+      "code": "error_code_runtime_airflow_network"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, \"SimPipes: Program terminated due to previous condition(s).\", true);",
+      "code": "error_code_fatal_general"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, \"Preceding condition causes termination.\", true);",
+      "code": "error_code_fatal_general"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}: Program terminated due to previous condition(s).\", RoutineName), true);",
+      "code": "error_code_fatal_general"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, \"InitBaseboard: Program terminated for previous conditions.\", true);",
+      "code": "error_code_fatal_general"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"{}: Somehow getNumObjectsFound was > 0 but epJSON.find found 0\", cCurrentModuleObject), false);",
+      "code": "error_code_developer_general"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"SimElectricBaseboard:  Invalid CompIndex passed={}, Number of Units={}, Entered Unit name={}\",BaseboardNum,numBaseboards,EquipName), true);",
+      "code": "error_code_developer_invalid_index"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, format(\"InitializeIHP: Invalid CompIndex passed={}, Number of Integrated HPs={}, IHP name=AS-IHP\",DXCoilNum,state.dataIntegratedHP->IntegratedHeatPumps.size()), true);",
+      "code": "error_code_developer_invalid_index"
+    },
+    {
+      "message": "emitErrorMessage(state, -999, \"ScheduleAnnualFullLoadHours called with ScheduleIndex out of range\", true);",
+      "code": "error_code_developer_invalid_index"
+    }
+  ]
+}

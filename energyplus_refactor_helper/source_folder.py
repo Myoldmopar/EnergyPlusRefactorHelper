@@ -1,5 +1,7 @@
 from itertools import zip_longest
 from json import dumps
+
+import matplotlib.pyplot
 import matplotlib.pyplot as plt
 from pathlib import Path
 from typing import Optional
@@ -54,7 +56,7 @@ class SourceFolder:
         :param matched_files: A list of Path instances to all matched source files to be processed here
         :return: Returns a list of SourceFile instances which have been parsed for function calls.
         """
-        logger.log("Processing files to identify function calls in each")
+        logger.log("Processing files to identify function calls (usually ~15 seconds)")
         processed_files = []
         for file_num, source_file in enumerate(sorted(matched_files)):
             processed_files.append(SourceFile(source_file, self.function_call_list))
@@ -114,7 +116,7 @@ class SourceFolder:
         :param output_json_file: The output file path to write.
         :return: None
         """
-        logger.log("Building JSON summary output")
+        logger.log("Building JSON summary output (usually ~10 seconds)")
         full_json_content = {}
         for file_num, source_file in enumerate(processed_files):
             full_json_content[source_file.path.name] = [g.to_json() for g in source_file.get_function_call_groups()]
@@ -170,12 +172,14 @@ class SourceFolder:
         :param output_file_file: The output file path to write.
         :return: None
         """
-        logger.log("Building plot data")
+        logger.log("Building plot data (usually ~30 seconds)")
         y_max = len(self.function_call_list)
         file_names = [x.path.name for x in processed_files]
         data = [x.advanced_function_distribution for x in processed_files]
         num_data_sets = len(data)
-        fig, axes = plt.subplots(num_data_sets, 1, layout='constrained')
+        plot_data = plt.subplots(num_data_sets, 1, layout='constrained')
+        fig: matplotlib.pyplot.Figure = plot_data[0]
+        axes: list[matplotlib.pyplot.axes] = plot_data[1]
         fig.set_size_inches(8, int(num_data_sets / 2))
         plot_num = -1
         for data_num, distribution in enumerate(data):
@@ -187,5 +191,5 @@ class SourceFolder:
             axes[plot_num].set_ylim([0, y_max])
             logger.terminal_progress_bar(data_num + 1, len(data), '')
         logger.terminal_progress_done()
-        logger.log("Results processed, plot being set up now (may take some time!)")
+        logger.log("Results processed, plot being set up now (usually ~1 minute)")
         plt.savefig(output_file_file)

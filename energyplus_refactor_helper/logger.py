@@ -46,7 +46,7 @@ class Logger:
         percent_done = round(100 * (current_num / total_num), 3)
         filled_length = int(80 * (percent_done / 100.0))
         bar = "*" * filled_length + '-' * (80 - filled_length)
-        print(f"\r                  Progress : |{bar}| {percent_done}% - {suffix}", end='')
+        print(f"\r                  Progress : |{bar}| {percent_done:.2f}% - {suffix}", end='')
 
     @staticmethod
     def terminal_progress_done() -> None:
